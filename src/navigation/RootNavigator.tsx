@@ -8,6 +8,7 @@ import RegisterScreen from "../features/auth/presentation/screens/RegisterScreen
 import ApplicationSentScreen from "../features/discover/presentation/screens/ApplicationSentScreen";
 import DiscoverScreen from "../features/discover/presentation/screens/DiscoverScreen";
 import InvitationsScreen from "../features/invitations/presentation/screens/InvitationsScreen";
+import ProjectMembersScreen from "../features/members/presentation/screens/ProjectMembersScreen";
 import CollaborationHistoryScreen from "../features/profile/presentation/screens/CollaborationHistoryScreen";
 import EditProfileScreen from "../features/profile/presentation/screens/EditProfileScreen";
 import OnboardingScreen from "../features/profile/presentation/screens/OnboardingScreen";
@@ -100,7 +101,8 @@ export default function RootNavigator() {
       <Stack.Screen name="Invitations" component={InvitationsScreen} options={{ title: "Invitaciones" }} />
 
       {/* D · tasks */}
-      <Stack.Screen name="TaskBoard" component={TaskBoardScreen} options={{ title: "Tareas" }} />
+      <Stack.Screen name="ProjectMembers" component={ProjectMembersScreen} options={{ title: "Miembros" }} />
+      <Stack.Screen name="TaskBoard"component={TaskBoardScreen} options={{ title: "Tareas" }} />
       <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: "Tarea" }} />
     </Stack.Navigator>
   );

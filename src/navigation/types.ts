@@ -42,7 +42,8 @@ export type RootStackParamList = {
   CreateProject: undefined;
   Invitations: undefined;
 
-  // D · tasks
+  // D · members y tasks
+  ProjectMembers: { projectId: string };
   TaskBoard: { projectId: string };
   TaskDetail: { projectId: string; taskId: string };
 };
