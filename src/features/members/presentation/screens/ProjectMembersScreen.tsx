@@ -100,16 +100,19 @@ export default function ProjectMembersScreen() {
             <PersonRow
               testID={`members.row.${item.userId}`}
               name={vm.nameOf(item)}
+              subtitleLines={2}
               subtitle={[MEMBER_ROLE_LABELS[item.role], since].filter(Boolean).join(" · ")}
               action={
                 item.userId === vm.userId ? undefined : (
                   <View style={styles.actions}>
-                    <Button mode="contained-tonal" compact disabled testID={`members.follow.${item.userId}`}>
+                    <Button mode="contained-tonal" compact disabled labelStyle={styles.followLabel} testID={`members.follow.${item.userId}`}>
                       Seguir
                     </Button>
                     {vm.canRemove(item) ? (
                       <IconButton
                         icon="account-remove-outline"
+                        size={20}
+                        style={styles.removeIcon}
                         accessibilityLabel="Quitar del proyecto"
                         testID={`members.remove.${item.userId}`}
                         onPress={() =>
@@ -142,6 +145,8 @@ const styles = StyleSheet.create({
   list: { padding: spacing.gutter },
   header: { marginBottom: spacing.sm, gap: 2 },
   actions: { flexDirection: "row", alignItems: "center" },
+  removeIcon: { margin: 0 },
+  followLabel: { marginHorizontal: 10 },
   leave: { marginTop: spacing.lg },
   empty: { textAlign: "center", marginTop: spacing.xl },
 });

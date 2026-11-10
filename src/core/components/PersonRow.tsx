@@ -25,6 +25,7 @@ export function initialsOf(name: string): string {
 export function PersonRow({
   name,
   subtitle,
+  subtitleLines = 1,
   action,
   onPress,
   style,
@@ -32,6 +33,7 @@ export function PersonRow({
 }: {
   name: string;
   subtitle?: string;
+  subtitleLines?: number;
   action?: React.ReactNode;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
@@ -52,7 +54,7 @@ export function PersonRow({
           {name}
         </Text>
         {subtitle ? (
-          <Text variant="bodyMedium" numberOfLines={1} testID={`${testID}.subtitle`}>
+          <Text variant="bodyMedium" numberOfLines={subtitleLines} testID={`${testID}.subtitle`}>
             {subtitle}
           </Text>
         ) : null}
