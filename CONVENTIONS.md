@@ -81,6 +81,9 @@ Reglas:
 - El theme es el de React Native Paper (MD3), en `src/theme/theme.ts`, con los
   colores en `light-colors.json` / `dark-colors.json`. Los colores se leen del
   theme (`useTheme()`), no se escriben a mano en los componentes.
+  Los valores del rebranding (colores, Cabin, radios, espaciado) y lo que
+  falta confirmar con diseño están en `docs/design-tokens.md`; radios y
+  espaciado salen de `src/theme/tokens.ts`.
 - El theme de React Navigation se deriva del de Paper (ver `App.tsx`).
 - Iconos: `MaterialCommunityIcons` de `@expo/vector-icons`, el mismo set que usa Paper.
 - Estilos con `StyleSheet.create` al final del archivo.
