@@ -259,8 +259,6 @@ La mayoría están asignados en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.m
 - Pasar al español los comentarios que están en inglés.
 - Reemplazar `roble.schema.desired.json` y `roble_queries/` por el esquema de
   Pollink (`docs/class_diagram.puml`): hoy siguen siendo los de r_market (tarea A2).
-- Arreglar la prueba de integración «entrar con la cuenta de demo», que falla con
-  «Couldn't find a navigation context» desde antes de la limpieza.
 - Adaptar los textos y comentarios de `auth` que aún hablan de publicar,
   preguntar o chatear (tarea A4).
 - Quitar de los comentarios las comparaciones con f_market/Flutter. Se

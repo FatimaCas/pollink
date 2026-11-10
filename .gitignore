@@ -30,8 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files: todos menos el ejemplo
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -39,15 +40,20 @@ yarn-error.*
 # jest
 coverage/
 
-app-example
-
 # generated native folders
 /ios
 /android
 
 # editor
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# logs
+*.log
+
+# Claude Code: permisos personales de cada quien
+.claude/settings.local.json
 
 # Roble: cada quien apunta a su propio proyecto
-.env
 .roble.mcp.env
