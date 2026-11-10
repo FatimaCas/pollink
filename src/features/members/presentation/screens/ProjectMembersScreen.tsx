@@ -1,8 +1,8 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import React from "react";
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
-import { Button, Text, useTheme } from "react-native-paper";
+import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from "react-native";
+import { Button, IconButton, Text, useTheme } from "react-native-paper";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { PersonRow } from "@/src/core/components/PersonRow";
@@ -22,6 +22,20 @@ export default function ProjectMembersScreen() {
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, "ProjectMembers">>();
   const vm = useProjectMembersViewModel(params.projectId);
+
+  const confirm = (title: string, message: string, confirmLabel: string, run: () => Promise<string | null>, after?: () => void) =>
+    Alert.alert(title, message, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: confirmLabel,
+        style: "destructive",
+        onPress: async () => {
+          const failure = await run();
+          if (failure) Alert.alert("No se pudo", failure);
+          else after?.();
+        },
+      },
+    ]);
 
   if (vm.loading) return <ActivityIndicator style={styles.center} testID="members.loading" />;
 
@@ -54,6 +68,27 @@ export default function ProjectMembersScreen() {
             </Text>
           </View>
         }
+        ListFooterComponent={
+          vm.canLeave ? (
+            <Button
+              mode="outlined"
+              textColor={theme.colors.error}
+              style={styles.leave}
+              testID="members.leave"
+              onPress={() =>
+                confirm(
+                  "Salir del proyecto",
+                  "Tus tareas sin terminar quedarán libres. Las terminadas se conservan a tu nombre.",
+                  "Salir",
+                  vm.leave,
+                  () => navigation.goBack(),
+                )
+              }
+            >
+              Salir del proyecto
+            </Button>
+          ) : null
+        }
         ListEmptyComponent={
           <Text variant="bodyMedium" style={styles.empty}>
             Aún no hay miembros en este proyecto.
@@ -65,12 +100,32 @@ export default function ProjectMembersScreen() {
             <PersonRow
               testID={`members.row.${item.userId}`}
               name={vm.nameOf(item)}
+              subtitleLines={2}
               subtitle={[MEMBER_ROLE_LABELS[item.role], since].filter(Boolean).join(" · ")}
               action={
                 item.userId === vm.userId ? undefined : (
-                  <Button mode="contained-tonal" compact disabled testID={`members.follow.${item.userId}`}>
-                    Seguir
-                  </Button>
+                  <View style={styles.actions}>
+                    <Button mode="contained-tonal" compact disabled labelStyle={styles.followLabel} testID={`members.follow.${item.userId}`}>
+                      Seguir
+                    </Button>
+                    {vm.canRemove(item) ? (
+                      <IconButton
+                        icon="account-remove-outline"
+                        size={20}
+                        style={styles.removeIcon}
+                        accessibilityLabel="Quitar del proyecto"
+                        testID={`members.remove.${item.userId}`}
+                        onPress={() =>
+                          confirm(
+                            "Quitar del proyecto",
+                            `${vm.nameOf(item)} saldrá del proyecto y sus tareas sin terminar quedarán libres.`,
+                            "Quitar",
+                            () => vm.remove(item),
+                          )
+                        }
+                      />
+                    ) : null}
+                  </View>
                 )
               }
               onPress={() =>
@@ -89,5 +144,9 @@ const styles = StyleSheet.create({
   center: { marginTop: spacing.xl },
   list: { padding: spacing.gutter },
   header: { marginBottom: spacing.sm, gap: 2 },
+  actions: { flexDirection: "row", alignItems: "center" },
+  removeIcon: { margin: 0 },
+  followLabel: { marginHorizontal: 10 },
+  leave: { marginTop: spacing.lg },
   empty: { textAlign: "center", marginTop: spacing.xl },
 });
