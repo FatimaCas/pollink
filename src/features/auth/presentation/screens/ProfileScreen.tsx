@@ -5,14 +5,12 @@ import { Avatar, Button, Card, Dialog, Portal, Text } from "react-native-paper";
 
 import { initialsOf } from "@/src/core/utils/formatters";
 import { EmptyState } from "@/src/core/components/EmptyState";
-import { useFollows } from "@/src/features/listings/presentation/context/FollowsContext";
 import { useSession } from "../context/SessionContext";
 import { SaveAccountForm, SaveAccountSheet } from "../components/SaveAccountSheet";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const session = useSession();
-  const follows = useFollows();
   const [saving, setSaving] = useState(false);
   const [emailTaken, setEmailTaken] = useState(false);
   const user = session.user;
@@ -35,7 +33,7 @@ export default function ProfileScreen() {
       <EmptyState
         icon="account-outline"
         title="No has entrado"
-        message="El catálogo es público, pero lo demás necesita cuenta."
+        message="Entra o crea una cuenta para continuar."
         action={
           <Button mode="contained" onPress={() => navigation.navigate("Login")}>
             Entrar
@@ -61,7 +59,7 @@ export default function ProfileScreen() {
           <Card.Content style={styles.cardContent}>
             <Text variant="titleMedium">Guarda tu cuenta</Text>
             <Text variant="bodySmall">
-              Sin correo ni contraseña, lo que sigues vive solo en este teléfono. Con cuenta también puedes publicar y chatear.
+              Sin correo ni contraseña, lo que haces vive solo en este teléfono.
             </Text>
             <Button
               mode="contained"
@@ -78,15 +76,6 @@ export default function ProfileScreen() {
         </Card>
       ) : null}
 
-      {/* El mismo perfil que ve cualquiera: verse como te ven. */}
-      <Button
-        mode="contained-tonal"
-        icon="card-account-details-outline"
-        onPress={() => navigation.navigate("UserProfile", { userId: user.userId, name: user.name })}
-        contentStyle={styles.cta}
-      >
-        Mi perfil público y calificaciones
-      </Button>
       {/* A un invitado no se le ofrece cerrar sesión: no tiene con qué volver. */}
       {!session.isGuest ? (
         <Button mode="outlined" icon="logout" onPress={session.logout} contentStyle={styles.cta}>
@@ -96,7 +85,6 @@ export default function ProfileScreen() {
 
       <SaveAccountSheet
         visible={saving}
-        followedCount={follows.ids.size}
         initialName={session.guestName}
         busy={session.busy}
         error={session.error}

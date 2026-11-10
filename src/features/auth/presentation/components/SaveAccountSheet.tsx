@@ -11,7 +11,6 @@ export type SaveAccountForm = { name: string; email: string; password: string; c
 // que ya existe, conservando su id: no se pierde nada.
 type Props = {
   visible: boolean;
-  followedCount: number;
   initialName: string | null;
   busy: boolean;
   error: string | null;
@@ -27,8 +26,8 @@ export function SaveAccountSheet(props: Props) {
   );
 }
 
-function AccountForm({ followedCount, initialName, busy, error, onSubmit }: Props) {
-  // Que la cuenta nazca con el mismo nombre con el que ya firmó sus preguntas.
+function AccountForm({ initialName, busy, error, onSubmit }: Props) {
+  // Que la cuenta nazca con el mismo nombre que ya usaba como invitado.
   const [form, setForm] = useState<SaveAccountForm>({ name: initialName ?? "", email: "", password: "", confirmation: "" });
   const set = (field: keyof SaveAccountForm) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -36,9 +35,7 @@ function AccountForm({ followedCount, initialName, busy, error, onSubmit }: Prop
     <>
       <Text variant="titleLarge">Guarda tu cuenta</Text>
       <Text variant="bodySmall" style={styles.hint}>
-        {followedCount === 0
-          ? "Ahora mismo estás como invitado: si pierdes este teléfono, pierdes lo que llevas."
-          : `Conservas ${followedCount === 1 ? "la publicación que sigues" : `las ${followedCount} publicaciones que sigues`}, y podrás entrar desde otro teléfono.`}
+        Ahora mismo estás como invitado: si pierdes este teléfono, pierdes lo que llevas.
       </Text>
       <TextInput style={styles.field} mode="outlined" label="Tu nombre" autoCapitalize="words" value={form.name} onChangeText={set("name")} />
       <TextInput style={styles.field} mode="outlined" label="Correo" autoCapitalize="none" keyboardType="email-address" value={form.email} onChangeText={set("email")} />

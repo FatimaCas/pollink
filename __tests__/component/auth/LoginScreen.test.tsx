@@ -5,7 +5,6 @@ import { TOKENS } from "@/src/core/di/tokens";
 import { AuthFailure } from "@/src/features/auth/domain/AuthFailure";
 import { AuthRepository } from "@/src/features/auth/domain/repositories/AuthRepository";
 import LoginScreen from "@/src/features/auth/presentation/screens/LoginScreen";
-import { ListingRepository } from "@/src/features/listings/domain/repositories/ListingRepository";
 import { fake } from "@/__tests__/support/fake";
 import { renderScreen } from "@/__tests__/support/renderScreen";
 
@@ -13,9 +12,6 @@ import { renderScreen } from "@/__tests__/support/renderScreen";
 //
 // La prueba unitaria del view model ya sabe qué errores produce. Esta comprueba
 // lo que solo se ve en pantalla: que se pintan.
-//
-// f_market tenía además dos pruebas del botón de Google (aparece o no según el
-// servidor). r_market no tiene login con Google, así que no hay qué probar.
 class FakeAuthRepositoryState {
   failureToThrow: AuthFailure | null = null;
   loginCalls = 0;
@@ -35,9 +31,7 @@ function openLogin(state: FakeAuthRepositoryState) {
     },
     "AuthRepository",
   );
-  const container = new Container()
-    .register(TOKENS.AuthRepo, auth)
-    .register(TOKENS.ListingRepo, fake<ListingRepository>({}, "ListingRepository"));
+  const container = new Container().register(TOKENS.AuthRepo, auth);
   return renderScreen(LoginScreen, container);
 }
 

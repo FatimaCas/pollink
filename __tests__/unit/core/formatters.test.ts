@@ -1,9 +1,9 @@
 import { Formatters, initialsOf } from "@/src/core/utils/formatters";
 
 describe("Formatters", () => {
-  it("formats prices and mileage with thousands separators", () => {
-    expect(Formatters.price(104600000)).toBe("$ 104.600.000");
-    expect(Formatters.mileage(176000)).toBe("176.000 km");
+  it("formats thousands with dots", () => {
+    expect(Formatters.thousands(104600000)).toBe("104.600.000");
+    expect(Formatters.thousands(999)).toBe("999");
   });
 
   it("describes how long ago something happened", () => {

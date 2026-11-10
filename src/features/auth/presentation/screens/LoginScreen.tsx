@@ -24,7 +24,7 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text variant="bodyLarge" style={styles.intro}>
-        Entra para publicar, preguntar y chatear.
+        Entra para colaborar en proyectos.
       </Text>
       <TextInput
         testID={LoginScreen.emailFieldKey}
