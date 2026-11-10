@@ -71,7 +71,7 @@ export default function TaskBoardScreen() {
               task={item}
               currentUserId={board.userId}
               busy={board.busyTaskId === item.id}
-              onOpen={() => navigation.navigate("TaskDetail", { taskId: item.id })}
+              onOpen={() => navigation.navigate("TaskDetail", { projectId: params.projectId, taskId: item.id })}
               onReserve={() => board.reserve(item)}
             />
           )}

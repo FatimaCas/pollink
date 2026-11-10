@@ -44,7 +44,7 @@ export type RootStackParamList = {
 
   // D · tasks
   TaskBoard: { projectId: string };
-  TaskDetail: { taskId: string };
+  TaskDetail: { projectId: string; taskId: string };
 };
 
 // Makes useNavigation() / navigation.navigate() type-checked across the app.
