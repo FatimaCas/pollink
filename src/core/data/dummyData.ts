@@ -7,8 +7,11 @@ import { Row } from "../roble/guard";
 // uno solo— hace el mismo trabajo en los dos casos.
 //
 // Se pierde al cerrar la app. Existe para trabajar en la UI sin servidor y
-// para que las pruebas no necesiten red. Cada feature que tenga datasource en
-// memoria agrega aquí sus filas y su siembra.
+// para que las pruebas no necesiten red.
+//
+// Cada feature guarda sus filas en `table(TABLES.xxx)` y las siembra en su
+// `registerXxxLocal` (en su `di.ts`), así que este archivo no cambia al agregar
+// una feature.
 export class DummyData {
   // La cuenta con la que arranca la demo.
   static readonly demoEmail = "ana@demo.com";
@@ -17,6 +20,19 @@ export class DummyData {
   // Filas de `user_system`, con lo poco que la app mira de ellas.
   users: Row[] = [];
   passwords: Record<string, string> = {};
+
+  // Las filas de cada tabla, por nombre (ver `TABLES` en core/roble/tables.ts).
+  private readonly tables = new Map<string, Row[]>();
+
+  // Las filas de una tabla. La primera vez la crea vacía.
+  table(name: string): Row[] {
+    let rows = this.tables.get(name);
+    if (!rows) {
+      rows = [];
+      this.tables.set(name, rows);
+    }
+    return rows;
+  }
 
   // Quién tiene la sesión abierta, o `null`.
   session: Row | null = null;

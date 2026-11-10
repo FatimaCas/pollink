@@ -47,7 +47,8 @@ entity project {
 * skills : jsonb
 * status : open | closed
 * total_tasks: int
-* progress: int
+* progress: float8
+  createdAt : timestamptz
 }
 
 note bottom of project
@@ -110,7 +111,7 @@ entity task {
 * status : todo | doing | done
  deadline: timestamptz
  finished_at: timestamptz
- asignee_id: uuid <<FK>>
+ assignee_id: uuid <<FK>>
  checklist: json
 }
 

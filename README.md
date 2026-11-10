@@ -10,8 +10,9 @@ App móvil en React Native (Expo) con [Roble](https://roble-api.test-openlab.uni
 ## Estado actual
 
 Pollink parte de la base técnica de r_market, ya sin sus features de carros.
-Hoy la app solo tiene **autenticación**: entrar, registrarse, entrar como
-invitado y guardar la cuenta después, más la pestaña Perfil.
+Hoy tiene **autenticación** (entrar, registrarse, entrar como invitado y
+guardar la cuenta después) y el **esqueleto** de toda la app: las pestañas
+Descubrir · Proyectos · Perfil y todas las rutas, con pantallas pendientes.
 
 Pollink va a recrear el alcance de Imker (`design-thinking/app`). El reparto
 del trabajo está en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md), y lo
@@ -83,14 +84,22 @@ App.tsx                 providers: DI, Paper, Snackbar, sesión
 src/
   core/
     di/                 contenedor, TOKENS, appContainer y localContainer
-    roble/              el cliente (uno solo), la config del .env y guardRoble
+    roble/              el cliente (uno solo), la config del .env, guardRoble y tables.ts
     feedback/           la Snackbar
     data/               datos de prueba para correr sin servidor
     components/ utils/  componentes y funciones compartidas
   navigation/           stack raíz + pestañas, rutas tipadas, navigationRef
   theme/                theme de React Native Paper (claro y oscuro)
   features/
-    auth/               sesión, login, registro, invitado, guardar cuenta
+    auth/               sesión, login, registro, invitado, guardar cuenta   (A)
+    discover/           feed de proyectos, filtros, postularse          (A)
+    requests/           solicitudes para colaborar                      (A)
+    profile/            perfil propio y ajeno, onboarding, ajustes      (B)
+    trust/              indicadores de confianza                        (B)
+    projects/           crear, mis proyectos, ficha, cerrar             (C)
+    invitations/        invitaciones a proyectos                        (C)
+    members/            miembros, salir y quitar                        (D)
+    tasks/              tablero, checklist, fechas, comentarios         (D)
 ```
 
 Cada feature repite las mismas capas:
@@ -98,6 +107,7 @@ Cada feature repite las mismas capas:
 ```
 features/<nombre>/
   domain/          entities, repositories (interfaces) y su Failure
+  di.ts            registra sus repositorios (con Roble y en memoria)
   data/
     datasources/   interfaz + implementación con Roble (+ en memoria, opcional)
     repositories/  uno por feature: convierte filas en entidades y traduce errores

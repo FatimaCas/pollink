@@ -6,9 +6,12 @@ import { Avatar, Button, Card, Dialog, Portal, Text } from "react-native-paper";
 import { initialsOf } from "@/src/core/utils/formatters";
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { useSession } from "../context/SessionContext";
-import { SaveAccountForm, SaveAccountSheet } from "../components/SaveAccountSheet";
+import { SaveAccountForm, SaveAccountSheet } from "./SaveAccountSheet";
 
-export default function ProfileScreen() {
+// La cuenta de quien está dentro: entrar, guardar la cuenta de invitado y
+// cerrar sesión. La pestaña Perfil (feature `profile`) la muestra mientras se
+// construye; después se puede mover a Ajustes, como en Imker.
+export function AccountPanel() {
   const navigation = useNavigation();
   const session = useSession();
   const [saving, setSaving] = useState(false);

@@ -4,7 +4,8 @@ import { RobleApiClient } from "roble-client";
 // El cliente de Roble, uno solo para toda la app.
 //
 // Se crea una vez (en `appContainer.ts`) y se comparte: crear uno por pantalla
-// le daría a cada copia su propia sesión. Solo lo usan los datasources.
+// le daría a cada copia su propia sesión. Solo lo usan los datasources. Los
+// nombres de tablas y consultas guardadas están en `tables.ts`.
 export class RobleClient {
   readonly db: RobleApiClient;
 
@@ -20,10 +21,6 @@ export class RobleClient {
             storage: AsyncStorage,
           });
   }
-
-  // Nombres de las tablas y de las consultas guardadas (ver `roble_queries/`)
-  // en un solo sitio: un typo aquí es un 404, no un error de compilación. Cada
-  // feature agrega los suyos.
 
   // El `userId` de la sesión, sacado del token sin ir al servidor.
   get currentUserId(): string | null {

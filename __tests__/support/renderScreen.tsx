@@ -1,5 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import { render } from "@testing-library/react-native";
 import React from "react";
 import { PaperProvider } from "react-native-paper";
@@ -18,7 +18,7 @@ export const safeAreaMetrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 export function renderScreen(screen: React.ComponentType<any>, container: Container) {
   return render(

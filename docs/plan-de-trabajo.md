@@ -54,6 +54,12 @@ repositorio nunca llama a otro.
 
 Abre el camino para los demás: su Fase 0 bloquea a todo el equipo.
 
+> **Estado:** A1 hecha. A2 hecha salvo la verificación contra el proyecto de Roble
+> (`roble_schema_plan` y `npm run smoke` con un `.env` real). A3 hecha: stack,
+> pestañas, todas las rutas con pantallas pendientes y persistencia de la
+> navegación. También están listos los `di.ts` por feature, `TOKENS` completo y
+> `TABLES` / `QUERIES`, así que nadie necesita tocar los archivos compartidos.
+
 | # | Tarea | Imker de referencia | Tam. |
 |---|---|---|---|
 | A1 | **Limpiar la base**: borrar las features de r_market (`listings`, `vehicles`, `qa`, `chat`, `profiles`, sus pruebas, `dummyData` y `assets/cars`), renombrar a Pollink (`package.json`, `app.json`), crear `.gitignore`, `.env.example` y `.roble.mcp.env.example` | — | M |
@@ -127,8 +133,8 @@ D  ──── contratos ─── D1 → D4 → D5 → D6 ──────�
 ```
 
 **Fase 0 · Base y contratos.** A hace A1–A3. En paralelo, cada persona abre un PR
-**solo con su `domain/`**: entidades, interfaces de repositorio, su `Failure` y
-sus `TOKENS`. Se revisa entre todos y se fusiona antes de seguir. Desde ahí cada
+**solo con su `domain/`**: entidades, interfaces de repositorio y su `Failure`
+(los `TOKENS` ya están declarados). Se revisa entre todos y se fusiona antes de seguir. Desde ahí cada
 quien programa contra las interfaces de los demás con falsos (`fake<X>()`), sin
 esperar a que estén implementadas.
 

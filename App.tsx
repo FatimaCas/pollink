@@ -4,7 +4,8 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
+import { StyleSheet, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 
 import { Container } from "./src/core/di/container";
@@ -14,6 +15,7 @@ import { MissingConfigScreen } from "./src/core/roble/MissingConfigScreen";
 import { createLocalContainer } from "./src/core/di/localContainer";
 import { missingRobleConfig, useLocalData } from "./src/core/roble/robleConfig";
 import { SessionProvider, useSession } from "./src/features/auth/presentation/context/SessionContext";
+import { useNavigationPersistence } from "./src/navigation/navigationPersistence";
 import { navigationRef } from "./src/navigation/navigationRef";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { darkTheme, lightTheme } from "./src/theme/theme";
@@ -35,8 +37,11 @@ export default function App() {
 }
 
 // `container` lets tests swap the Roble data sources for fakes.
-export function AppRoot({ container }: { container?: Container }) {
+// `persistNavigation`: las pruebas lo apagan para que una no herede la
+// navegación de la anterior.
+export function AppRoot({ container, persistNavigation = true }: { container?: Container; persistNavigation?: boolean }) {
   const [fontsReady, setFontsReady] = useState(false);
+  const navigation = useNavigationPersistence(persistNavigation);
   const scheme = useColorScheme();
   const theme = scheme === "dark" ? darkTheme : lightTheme;
   // Sin `.env` no hay a qué servidor conectarse: mejor decirlo en pantalla que
@@ -54,7 +59,7 @@ export function AppRoot({ container }: { container?: Container }) {
     if (fontsReady && missing.length > 0) SplashScreen.hide();
   }, [fontsReady, missing.length]);
 
-  if (!fontsReady) return null;
+  if (!fontsReady || !navigation.ready) return null;
 
   if (missing.length > 0) {
     return (
@@ -78,17 +83,24 @@ export function AppRoot({ container }: { container?: Container }) {
   };
 
   return (
-    <DIProvider container={container}>
-      <PaperProvider theme={theme}>
-        <SnackbarProvider>
-          <SessionProvider>
-            <NavigationContainer ref={navigationRef} theme={navigationTheme}>
-              <Shell />
-            </NavigationContainer>
-          </SessionProvider>
-        </SnackbarProvider>
-      </PaperProvider>
-    </DIProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <DIProvider container={container}>
+        <PaperProvider theme={theme}>
+          <SnackbarProvider>
+            <SessionProvider>
+              <NavigationContainer
+                ref={navigationRef}
+                theme={navigationTheme}
+                initialState={navigation.initialState}
+                onStateChange={navigation.onStateChange}
+              >
+                <Shell />
+              </NavigationContainer>
+            </SessionProvider>
+          </SnackbarProvider>
+        </PaperProvider>
+      </DIProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -101,3 +113,7 @@ function Shell() {
   }, [ready]);
   return ready ? <RootNavigator /> : null;
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

@@ -24,7 +24,7 @@ App.tsx                providers globales (DI, Paper, Snackbar, contextos)
 src/
   core/                lo compartido entre features
     di/                Container, TOKENS, appContainer (raíz de composición), localContainer
-    roble/             cliente único de Roble, config del .env, guardRoble
+    roble/             cliente único de Roble, config del .env, guardRoble, tables.ts
     feedback/          Snackbar (avisos de éxito y error)
     data/              DummyData y recursos para correr sin servidor
     hooks/             hooks custom usados por más de una feature
@@ -37,6 +37,7 @@ src/
       entities/        tipos y reglas puras del dominio
       repositories/    interfaces de los repositorios
       <Feature>Failure.ts
+    di.ts              registra los repositorios de la feature en el contenedor
     data/
       datasources/     interfaz + implementación con Roble (+ en memoria, opcional)
       repositories/    <Xxx>RepositoryImpl
@@ -52,9 +53,11 @@ Reglas:
 
 - Una pantalla no llama a repositorios ni a Roble: usa su view model
   (`useXxxViewModel`) o un contexto.
-- Las dependencias se obtienen con `useInject<Interfaz>(TOKENS.Xxx)`. Solo
-  `core/di/appContainer.ts` (y `localContainer.ts`) sabe qué implementación hay
-  detrás de cada interfaz. Cada dependencia nueva lleva su token en `TOKENS`.
+- Las dependencias se obtienen con `useInject<Interfaz>(TOKENS.Xxx)`. `TOKENS`
+  ya trae un token por cada repositorio del plan.
+- Cada feature registra sus repositorios en su propio `di.ts`
+  (`registerXxx` con Roble y `registerXxxLocal` en memoria). `appContainer.ts` y
+  `localContainer.ts` ya llaman a todos: al implementar una feature no se tocan.
 - Un repositorio por feature.
 - Una feature puede importar el `domain/` de otra, nunca su `data/`.
 - Los errores llegan a la pantalla como texto: el view model guarda
@@ -100,9 +103,13 @@ Se usa React Navigation:
 - Las rutas y sus parámetros se tipan en `src/navigation/types.ts`
   (`RootStackParamList`, `TabParamList`) y se registran en
   `ReactNavigation.RootParamList` para que `useNavigation()` quede tipado.
+- Todas las rutas del plan ya están declaradas y tienen su pantalla en la feature
+  de su responsable, que arranca como `PendingScreen`. Implementar una pantalla
+  es editar su archivo; `RootNavigator.tsx` y `types.ts` solo se tocan para
+  cambiar títulos o parámetros, avisando a quien navega a esa ruta.
 - Se conserva el estado de la navegación al recargar la app o al pasarla a
   segundo plano (`initialState` / `onStateChange` del `NavigationContainer`,
-  guardando en AsyncStorage).
+  guardando en AsyncStorage; ver `navigation/navigationPersistence.ts`).
 - Para navegar desde fuera de un componente (por ejemplo, al caducar la sesión)
   se usa `navigationRef`.
 - La espera de la sesión (splash o indicador de carga) se resuelve en `App.tsx`
@@ -184,8 +191,11 @@ export type RootStackParamList = {
   - `data/datasources/XxxRemoteDataSource.ts`: la implementación con `roble-client`.
 
   La implementación en memoria (`XxxInMemoryDataSource.ts`) es opcional. Si
-  existe, se registra en `core/di/localContainer.ts`. Solo las features que la
-  tienen funcionan con `npm run start:local` y en la prueba de integración.
+  existe, se registra en `registerXxxLocal` (en el `di.ts` de la feature) y guarda
+  sus filas en `DummyData.table(TABLES.xxx)`. Solo las features que la tienen
+  funcionan con `npm run start:local` y en la prueba de integración.
+- Los nombres de tablas y consultas guardadas se usan desde `TABLES` y `QUERIES`
+  (`core/roble/tables.ts`), nunca escritos a mano.
 - Las llamadas a Roble viven **solo** en `data/datasources/` (además de
   `core/roble/` y `core/di/appContainer.ts`, que crean el cliente). Fuera de ahí,
   lo único del paquete que se puede nombrar son sus excepciones, y solo para
@@ -249,16 +259,12 @@ export type RootStackParamList = {
 
 ## Pendientes
 
-La mayoría están asignados en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md)
-(tareas A1–A3).
+Los de producto están asignados en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md).
 
-- Migrar `RootNavigator` (y `__tests__/support/renderScreen.tsx`) de
-  `@react-navigation/native-stack` a `@react-navigation/stack`, y desinstalar
-  `native-stack`.
-- Implementar la persistencia del estado de navegación en `App.tsx`.
 - Pasar al español los comentarios que están en inglés.
-- Reemplazar `roble.schema.desired.json` y `roble_queries/` por el esquema de
-  Pollink (`docs/class_diagram.puml`): hoy siguen siendo los de r_market (tarea A2).
+- Verificar el esquema contra el proyecto de Roble de Pollink: correr
+  `roble_schema_plan` (MCP) y `npm run smoke` con un `.env` real, y crear las
+  consultas de `roble_queries/` que falten (tarea A2).
 - Adaptar los textos y comentarios de `auth` que aún hablan de publicar,
   preguntar o chatear (tarea A4).
 - Quitar de los comentarios las comparaciones con f_market/Flutter. Se
