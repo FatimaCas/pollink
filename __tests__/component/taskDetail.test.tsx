@@ -55,7 +55,7 @@ const task = (over: Partial<ProjectTask> = {}): ProjectTask => ({
 
 function setup(repo: Partial<TaskRepository>, owner = "u9") {
   const c = new Container();
-  c.register(TOKENS.TaskRepo, fake<TaskRepository>(repo, "TaskRepo"));
+  c.register(TOKENS.TaskRepo, fake<TaskRepository>({ getComments: async () => [], ...repo }, "TaskRepo"));
   c.register(
     TOKENS.MembersRepo,
     fake<MembersRepository>({ activeMembers: async () => [{ userId: owner, role: "owner", joinedAt: null }] }, "MembersRepo"),
@@ -149,4 +149,59 @@ test("quien no creó la tarea ni el proyecto no ve «Cambiar»", async () => {
 test("si la tarea ya no existe lo dice", async () => {
   setup({ getTasks: async () => [] });
   expect(await screen.findByText("La tarea ya no existe.")).toBeTruthy();
+});
+
+test("muestra los comentarios y envía uno nuevo", async () => {
+  const addComment = jest.fn(async ({ body }: { body: string }) => ({
+    id: "c2",
+    userId: "u1",
+    body,
+    createdAt: new Date(),
+  }));
+  setup({
+    getTasks: async () => [task()],
+    getComments: async () => [{ id: "c1", userId: "u2", body: "Va bien", createdAt: new Date() }],
+    addComment,
+  });
+  expect(await screen.findByText("Va bien")).toBeTruthy();
+  expect(screen.getByText("Otra persona")).toBeTruthy();
+  expect(screen.getByTestId("taskComments.send").props.accessibilityState?.disabled).toBe(true);
+
+  fireEvent.changeText(screen.getByTestId("taskComments.input"), "  Listo el boceto  ");
+  fireEvent.press(screen.getByTestId("taskComments.send"));
+
+  expect(await screen.findByText("Listo el boceto")).toBeTruthy();
+  expect(addComment).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1", body: "Listo el boceto" }));
+  expect(screen.getByTestId("taskComments.input").props.value).toBe("");
+  expect(screen.getByTestId("taskComments.count")).toHaveTextContent("2 comentarios");
+});
+
+test("sin comentarios, y si falla enviar conserva el texto", async () => {
+  setup({
+    getTasks: async () => [task()],
+    addComment: async () => {
+      throw new Error("Sin conexión");
+    },
+  });
+  expect(await screen.findByTestId("taskComments.empty")).toHaveTextContent(/Aún no hay comentarios/);
+  fireEvent.changeText(screen.getByTestId("taskComments.input"), "Hola");
+  fireEvent.press(screen.getByTestId("taskComments.send"));
+  await waitFor(() => expect(screen.getByTestId("taskComments.send").props.accessibilityState?.disabled).toBe(false));
+  expect(screen.getByTestId("taskComments.input").props.value).toBe("Hola");
+});
+
+test("si no cargan los comentarios lo dice y reintentar los trae", async () => {
+  let fail = true;
+  setup({
+    getTasks: async () => [task()],
+    getComments: async () => {
+      if (fail) throw new Error("Sin conexión");
+      return [{ id: "c1", userId: "u1", body: "Ya cargó", createdAt: null }];
+    },
+  });
+  expect(await screen.findByTestId("taskComments.empty")).toHaveTextContent(/Sin conexión/);
+  fail = false;
+  fireEvent.press(screen.getByTestId("taskComments.retry"));
+  expect(await screen.findByText("Ya cargó")).toBeTruthy();
+  expect(screen.getByText("Tú")).toBeTruthy();
 });
