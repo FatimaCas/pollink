@@ -3,25 +3,25 @@ import { useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Checkbox, IconButton, Text, TextInput, useTheme } from "react-native-paper";
+import { Button, Checkbox, Divider, IconButton, Text, TextInput, useTheme } from "react-native-paper";
 
-import { BottomSheet } from "@/src/core/components/BottomSheet";
+import { DayPickerModal } from "@/src/core/components/DayPickerModal";
 import { EmptyState } from "@/src/core/components/EmptyState";
+import { systemClock } from "@/src/core/utils/clock";
 import type { RootStackParamList } from "@/src/navigation/types";
 import { spacing } from "@/src/theme/tokens";
 import { TaskDeadline } from "../../domain/entities/TaskDeadline";
-import { TASK_STATUS_LABELS } from "../../domain/entities/TaskStatus";
 import { useTaskDetailViewModel } from "../viewmodels/useTaskDetailViewModel";
 
-// El progreso de una tarea: descripción, checklist (completarlo la termina),
-// fecha límite y señal de vencida. Los comentarios son de D7.
+// El progreso de una tarea (como en Imker): título, fecha límite con señal de
+// vencida, descripción y checklist (editables por quien la reservó) y «Guardar».
+// Completar el checklist la termina. Los comentarios son de D7.
 export default function TaskDetailScreen() {
   const theme = useTheme();
   const { params } = useRoute<RouteProp<RootStackParamList, "TaskDetail">>();
   const vm = useTaskDetailViewModel(params.projectId, params.taskId);
   const [newItem, setNewItem] = useState("");
-  const [deadlineOpen, setDeadlineOpen] = useState(false);
-  const [deadlineText, setDeadlineText] = useState("");
+  const [picking, setPicking] = useState(false);
 
   if (vm.loading) return <ActivityIndicator style={styles.center} testID="taskDetail.loading" />;
   if (vm.error || !vm.task) {
@@ -36,6 +36,8 @@ export default function TaskDetailScreen() {
   }
   const { task } = vm;
   const muted = { color: theme.colors.onSurfaceVariant };
+  const deadlineColor = vm.overdue ? theme.colors.error : theme.colors.onSurface;
+  const day = task.deadline ? TaskDeadline.formatDay(task.deadline) : "";
 
   const addItem = () => {
     vm.addSubtask(newItem);
@@ -48,57 +50,70 @@ export default function TaskDetailScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text variant="headlineSmall">{task.title}</Text>
-      <Text variant="bodyMedium" style={muted} testID="taskDetail.status">
-        {TASK_STATUS_LABELS[task.status]}
-        {task.finishedAt ? ` · ${TaskDeadline.formatDay(task.finishedAt)}` : ""}
+      <Text variant="titleLarge" style={styles.bold}>
+        {task.title}
       </Text>
+      <Divider />
 
-      <View style={styles.deadlineRow}>
-        <MaterialCommunityIcons
-          name={vm.overdue ? "alert-circle-outline" : "calendar-outline"}
-          size={20}
-          color={vm.overdue ? theme.colors.error : theme.colors.onSurfaceVariant}
-        />
-        <Text
-          variant="bodyLarge"
-          style={[styles.deadlineText, { color: vm.overdue ? theme.colors.error : theme.colors.onSurface }]}
-          testID="taskDetail.deadline"
-        >
-          {task.deadline
-            ? `${vm.overdue ? "Vencida · " : ""}${TaskDeadline.formatDay(task.deadline)}`
-            : "Sin fecha límite"}
-        </Text>
-        {vm.canEditDeadline ? (
-          <Button
-            compact
-            testID="taskDetail.editDeadline"
-            onPress={() => {
-              setDeadlineText(task.deadline ? TaskDeadline.formatDay(task.deadline) : "");
-              setDeadlineOpen(true);
-            }}
+      {task.deadline || vm.canEditDeadline ? (
+        <View style={styles.deadlineRow}>
+          <MaterialCommunityIcons
+            name={vm.overdue ? "alert-outline" : "calendar-outline"}
+            size={20}
+            color={vm.overdue ? theme.colors.error : theme.colors.onSurfaceVariant}
+          />
+          <Text
+            variant="bodyMedium"
+            style={[styles.deadlineText, { color: deadlineColor, fontWeight: vm.overdue ? "700" : undefined }]}
+            testID="taskDetail.deadline"
           >
-            Cambiar
-          </Button>
-        ) : null}
-      </View>
+            {task.deadline ? (vm.overdue ? `Vencida el ${day}` : `Vence el ${day}`) : "Sin fecha límite"}
+          </Text>
+          {vm.canEditDeadline ? (
+            <>
+              <IconButton
+                icon="calendar-edit"
+                disabled={vm.savingDeadline}
+                onPress={() => setPicking(true)}
+                accessibilityLabel={task.deadline ? "Cambiar fecha límite" : "Poner fecha límite"}
+                testID="taskDetail.editDeadline"
+              />
+              {task.deadline ? (
+                <IconButton
+                  icon="calendar-remove"
+                  disabled={vm.savingDeadline}
+                  onPress={() => vm.saveDeadline(null)}
+                  accessibilityLabel="Quitar fecha límite"
+                  testID="taskDetail.clearDeadline"
+                />
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      ) : null}
 
+      {vm.readOnlyReason ? (
+        <Text variant="bodySmall" style={muted}>
+          {vm.readOnlyReason}
+        </Text>
+      ) : null}
+
+      <Text variant="titleSmall" style={styles.bold}>
+        Descripción
+      </Text>
       <TextInput
         mode="outlined"
-        label="Descripción"
         value={vm.description}
         onChangeText={vm.setDescription}
         multiline
+        numberOfLines={3}
         editable={vm.canWork}
         testID="taskDetail.description"
       />
 
-      <Text variant="titleMedium">Checklist</Text>
-      {vm.subtasks.length === 0 ? (
-        <Text variant="bodyMedium" style={muted}>
-          Sin subtareas todavía.
-        </Text>
-      ) : null}
+      <Text variant="titleSmall" style={styles.bold}>
+        Checklist de progreso
+      </Text>
       {vm.subtasks.map((item, index) => (
         <View key={`${index}-${item.title}`} style={styles.itemRow}>
           <Checkbox
@@ -115,65 +130,44 @@ export default function TaskDetailScreen() {
           ) : null}
         </View>
       ))}
-
       {vm.canWork ? (
-        <>
-          <View style={styles.itemRow}>
-            <TextInput
-              mode="outlined"
-              dense
-              label="Nueva subtarea"
-              value={newItem}
-              onChangeText={setNewItem}
-              onSubmitEditing={addItem}
-              style={styles.itemTitle}
-              testID="taskDetail.newItem"
-            />
-            <IconButton icon="plus" onPress={addItem} accessibilityLabel="Agregar subtarea" testID="taskDetail.addItem" />
-          </View>
-          <Text variant="bodySmall" style={muted}>
-            Al completar todo el checklist la tarea se termina; si desmarcas alguna, vuelve a en progreso.
-          </Text>
-          <Button
-            mode="contained"
-            onPress={vm.save}
-            loading={vm.saving}
-            disabled={!vm.dirty || vm.saving}
-            testID="taskDetail.save"
-          >
-            Guardar cambios
-          </Button>
-        </>
-      ) : (
-        <Text variant="bodySmall" style={muted}>
-          Solo quien reservó la tarea puede editarla. Resérvala desde el tablero para trabajarla.
-        </Text>
-      )}
-
-      <BottomSheet visible={deadlineOpen} onDismiss={() => setDeadlineOpen(false)}>
-        <Text variant="titleLarge" style={styles.sheetTitle}>
-          Fecha límite
-        </Text>
-        <View style={styles.sheetBody}>
+        <View style={styles.itemRow}>
           <TextInput
             mode="outlined"
-            label="dd/mm/aaaa (vacío la quita)"
-            value={deadlineText}
-            onChangeText={setDeadlineText}
-            keyboardType="numbers-and-punctuation"
-            testID="taskDetail.deadlineInput"
+            dense
+            placeholder="Escribe una subtarea"
+            value={newItem}
+            onChangeText={setNewItem}
+            onSubmitEditing={addItem}
+            style={styles.itemTitle}
+            testID="taskDetail.newItem"
           />
-          <Button
-            mode="contained"
-            testID="taskDetail.deadlineSave"
-            onPress={async () => {
-              if (await vm.saveDeadline(deadlineText)) setDeadlineOpen(false);
-            }}
-          >
-            Guardar fecha
-          </Button>
+          <IconButton icon="plus" onPress={addItem} accessibilityLabel="Agregar subtarea" testID="taskDetail.addItem" />
         </View>
-      </BottomSheet>
+      ) : null}
+
+      {vm.canWork ? (
+        <Button
+          mode="contained"
+          onPress={vm.save}
+          loading={vm.saving}
+          disabled={!vm.dirty || vm.saving}
+          testID="taskDetail.save"
+        >
+          Guardar
+        </Button>
+      ) : null}
+
+      <DayPickerModal
+        visible={picking}
+        initial={task.deadline}
+        minDay={systemClock()}
+        onDismiss={() => setPicking(false)}
+        onConfirm={async (picked) => {
+          setPicking(false);
+          await vm.saveDeadline(picked);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -181,10 +175,9 @@ export default function TaskDetailScreen() {
 const styles = StyleSheet.create({
   center: { marginTop: spacing.xl },
   content: { padding: spacing.gutter, gap: spacing.md },
+  bold: { fontWeight: "700" },
   deadlineRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   deadlineText: { flex: 1 },
   itemRow: { flexDirection: "row", alignItems: "center" },
   itemTitle: { flex: 1 },
-  sheetTitle: { marginBottom: spacing.md },
-  sheetBody: { gap: spacing.md },
 });

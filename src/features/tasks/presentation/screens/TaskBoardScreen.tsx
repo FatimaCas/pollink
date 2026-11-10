@@ -2,27 +2,27 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
-import { Button, FAB, Text, useTheme } from "react-native-paper";
+import { Button, Text, useTheme } from "react-native-paper";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { SegmentedTabs } from "@/src/core/components/SegmentedTabs";
 import type { RootStackParamList } from "@/src/navigation/types";
 import { spacing } from "@/src/theme/tokens";
-import { TASK_STATUS_LABELS, TaskStatus } from "../../domain/entities/TaskStatus";
+import { TaskStatus } from "../../domain/entities/TaskStatus";
 import { NewTaskSheet } from "../components/NewTaskSheet";
 import { TaskCard } from "../components/TaskCard";
 import { useTaskBoardViewModel } from "../viewmodels/useTaskBoardViewModel";
 
-const COLUMNS: TaskStatus[] = ["todo", "doing", "done"];
-const EMPTY_TEXT: Record<TaskStatus, string> = {
-  todo: "No hay tareas pendientes.",
-  doing: "Nadie está trabajando en una tarea ahora.",
-  done: "Todavía no hay tareas terminadas.",
-};
+const COLUMNS: { value: TaskStatus; label: string; empty: string }[] = [
+  { value: "todo", label: "Pendientes", empty: "No hay tareas pendientes." },
+  { value: "doing", label: "En Progreso", empty: "No hay tareas en progreso." },
+  { value: "done", label: "Terminadas", empty: "Todavía no hay tareas terminadas." },
+];
 
-// El tablero de tareas de un proyecto: una columna por estado (todo / doing /
-// done) en pestañas, porque en el teléfono caben de una en una. La pestaña
-// «Asignaciones» del Figma no está aquí: espera la decisión de diseño.
+// El tablero de tareas de un proyecto (el «Gabinete de tareas» de Imker): una
+// columna por estado en pestañas, porque en el teléfono caben de una en una, y
+// «Crear tarea» abajo. La barra Miembros · Tareas · Asignaciones del Figma es de
+// la pantalla del proyecto, no de este tablero; «Asignaciones» sigue pendiente.
 export default function TaskBoardScreen() {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -31,16 +31,20 @@ export default function TaskBoardScreen() {
   const [column, setColumn] = useState<TaskStatus>("todo");
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const tasks = board.byStatus[column];
+  const current = COLUMNS.find((c) => c.value === column)!;
+
+  // Una tarea nueva nace pendiente: se vuelve a esa pestaña para verla.
+  const createTask: typeof board.createTask = async (values) => {
+    const created = await board.createTask(values);
+    if (created) setColumn("todo");
+    return created;
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: theme.colors.background }]}>
       <SegmentedTabs
         style={styles.tabs}
-        options={COLUMNS.map((value) => ({
-          value,
-          label: `${TASK_STATUS_LABELS[value]} (${board.byStatus[value].length})`,
-        }))}
+        options={COLUMNS.map(({ value, label }) => ({ value, label }))}
         selected={column}
         onSelect={setColumn}
         testID="taskBoard.tabs"
@@ -57,13 +61,15 @@ export default function TaskBoardScreen() {
         />
       ) : (
         <FlatList
-          data={tasks}
+          data={board.byStatus[column]}
           keyExtractor={(task) => task.id}
           contentContainerStyle={styles.list}
+          refreshing={false}
+          onRefresh={board.reload}
           ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           ListEmptyComponent={
-            <Text variant="bodyMedium" style={[styles.empty, { color: theme.colors.onSurfaceVariant }]}>
-              {EMPTY_TEXT[column]}
+            <Text variant="bodyMedium" style={styles.empty}>
+              {current.empty}
             </Text>
           }
           renderItem={({ item }) => (
@@ -78,12 +84,16 @@ export default function TaskBoardScreen() {
         />
       )}
 
-      <FAB icon="plus" label="Nueva tarea" style={styles.fab} onPress={() => setSheetOpen(true)} testID="taskBoard.new" />
+      <View style={styles.footer}>
+        <Button mode="contained" onPress={() => setSheetOpen(true)} testID="taskBoard.new">
+          Crear tarea
+        </Button>
+      </View>
       <NewTaskSheet
         visible={sheetOpen}
         creating={board.creating}
         onDismiss={() => setSheetOpen(false)}
-        onSubmit={board.createTask}
+        onSubmit={createTask}
       />
     </View>
   );
@@ -93,7 +103,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   tabs: { marginHorizontal: spacing.gutter, marginTop: spacing.md },
   center: { marginTop: spacing.xl },
-  list: { padding: spacing.gutter, paddingBottom: 96 },
+  list: { padding: spacing.gutter },
   empty: { textAlign: "center", marginTop: spacing.xl },
-  fab: { position: "absolute", right: spacing.lg, bottom: spacing.lg },
+  footer: { padding: spacing.gutter },
 });

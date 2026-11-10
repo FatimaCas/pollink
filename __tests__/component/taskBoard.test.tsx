@@ -23,6 +23,18 @@ jest.mock("@react-navigation/native", () => ({
   useRoute: () => ({ params: { projectId: "p1" } }),
 }));
 
+
+// El calendario real se prueba aparte (dayPickerModal.test.tsx): aquí se simula
+// con un botón que elige el 31/12/2099.
+jest.mock("@/src/core/components/DayPickerModal", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Pressable } = require("react-native");
+  return {
+    DayPickerModal: ({ visible, onConfirm }: { visible: boolean; onConfirm: (d: Date) => void }) =>
+      visible ? <Pressable testID="dayPicker.pick" onPress={() => onConfirm(new Date(2099, 11, 31))} /> : null,
+  };
+});
+
 const task = (over: Partial<ProjectTask>): ProjectTask => ({
   id: "t1",
   projectId: "p1",
@@ -43,26 +55,29 @@ function setup(repo: Partial<TaskRepository>) {
   return renderScreen(TaskBoardScreen, c);
 }
 
-test("reparte las tareas por columna y muestra el conteo", async () => {
+test("reparte las tareas por columna", async () => {
   setup({
     getTasks: async () => [task({ id: "a" }), task({ id: "b", status: "doing", assigneeId: "u1" }), task({ id: "c", status: "done" })],
   });
-  expect(await screen.findByText("Pendiente (1)")).toBeTruthy();
-  expect(screen.getByText("En progreso (1)")).toBeTruthy();
-  expect(screen.getByText("Terminada (1)")).toBeTruthy();
-  expect(screen.getByTestId("taskCard.a")).toBeTruthy();
+  expect(await screen.findByTestId("taskCard.a")).toBeTruthy();
   expect(screen.queryByTestId("taskCard.b")).toBeNull();
   fireEvent.press(screen.getByTestId("taskBoard.tabs.doing"));
   expect(screen.getByTestId("taskCard.b")).toBeTruthy();
-  expect(screen.getByText("Tú")).toBeTruthy();
+  expect(screen.getByText("Reservada por Tú")).toBeTruthy();
+  fireEvent.press(screen.getByTestId("taskBoard.tabs.done"));
+  expect(screen.getByTestId("taskCard.c")).toBeTruthy();
 });
 
 test("reservar mueve la tarea a «en progreso»", async () => {
   const reserveTask = jest.fn(async ({ task: t, userId }) => ({ ...t, status: "doing", assigneeId: userId }));
   setup({ getTasks: async () => [task({ id: "a" })], reserveTask });
   fireEvent.press(await screen.findByTestId("taskCard.a.reserve"));
-  await waitFor(() => expect(screen.getByText("En progreso (1)")).toBeTruthy());
-  expect(reserveTask).toHaveBeenCalledWith({ task: expect.objectContaining({ id: "a" }), userId: "u1" });
+  await waitFor(() =>
+    expect(reserveTask).toHaveBeenCalledWith({ task: expect.objectContaining({ id: "a" }), userId: "u1" }),
+  );
+  fireEvent.press(screen.getByTestId("taskBoard.tabs.doing"));
+  expect(await screen.findByText("Reservada por Tú")).toBeTruthy();
+  fireEvent.press(screen.getByTestId("taskBoard.tabs.todo"));
   expect(screen.queryByTestId("taskCard.a")).toBeNull();
 });
 
@@ -73,27 +88,52 @@ test("si otra persona se adelantó, recarga el tablero", async () => {
     .mockResolvedValueOnce([task({ id: "a", status: "doing", assigneeId: "u2" })]);
   setup({ getTasks, reserveTask: async () => { throw new TasksFailure("Ya la tomó otra persona."); } });
   fireEvent.press(await screen.findByTestId("taskCard.a.reserve"));
-  await waitFor(() => expect(screen.getByText("En progreso (1)")).toBeTruthy());
-  expect(getTasks).toHaveBeenCalledTimes(2);
+  await waitFor(() => expect(getTasks).toHaveBeenCalledTimes(2));
+  fireEvent.press(screen.getByTestId("taskBoard.tabs.doing"));
+  expect(await screen.findByText("Reservada por Otra persona")).toBeTruthy();
 });
 
-test("crear una tarea con fecha límite", async () => {
+test("crear una tarea con fecha límite elegida en el calendario", async () => {
   const createTask = jest.fn(async (p) => task({ id: "n", title: p.title, deadline: p.deadline }));
   setup({ getTasks: async () => [], createTask });
   fireEvent.press(await screen.findByTestId("taskBoard.new"));
   fireEvent.changeText(screen.getByTestId("newTask.title"), "  Escribir informe ");
-  fireEvent.changeText(screen.getByTestId("newTask.deadline"), "31/12/2099");
+  fireEvent.press(screen.getByTestId("newTask.deadline"));
+  fireEvent.press(screen.getByTestId("dayPicker.pick"));
+  expect(screen.getByText("Límite: 31/12/2099")).toBeTruthy();
   fireEvent.press(screen.getByTestId("newTask.submit"));
-  await waitFor(() => expect(screen.getByText("Pendiente (1)")).toBeTruthy());
-  expect(createTask).toHaveBeenCalledWith(
-    expect.objectContaining({ projectId: "p1", title: "Escribir informe", deadline: expect.any(Date) }),
-  );
+  await waitFor(() => expect(screen.getByTestId("taskCard.n")).toBeTruthy());
+  const { deadline } = createTask.mock.calls[0][0];
+  expect(createTask).toHaveBeenCalledWith(expect.objectContaining({ projectId: "p1", title: "Escribir informe" }));
+  // Vence al final del día elegido.
+  expect([deadline.getFullYear(), deadline.getMonth(), deadline.getDate(), deadline.getHours()]).toEqual([2099, 11, 31, 23]);
 });
 
-test("sin título no crea nada", async () => {
+test("la fecha límite elegida se puede quitar", async () => {
+  setup({ getTasks: async () => [] });
+  fireEvent.press(await screen.findByTestId("taskBoard.new"));
+  fireEvent.press(screen.getByTestId("newTask.deadline"));
+  fireEvent.press(screen.getByTestId("dayPicker.pick"));
+  fireEvent.press(screen.getByTestId("newTask.deadline.clear"));
+  expect(screen.getByText("Fecha límite (opcional)")).toBeTruthy();
+});
+
+test("sin nombre no crea nada y lo dice", async () => {
   const createTask = jest.fn();
   setup({ getTasks: async () => [], createTask });
   fireEvent.press(await screen.findByTestId("taskBoard.new"));
   fireEvent.press(screen.getByTestId("newTask.submit"));
   expect(createTask).not.toHaveBeenCalled();
+  expect(screen.getByText("Escribe un nombre")).toBeTruthy();
+});
+
+test("una tarea vencida y una terminada se rotulan distinto", async () => {
+  setup({
+    getTasks: async () => [
+      task({ id: "v", deadline: new Date(2020, 0, 1) }),
+      task({ id: "f", deadline: new Date(2099, 0, 1) }),
+    ],
+  });
+  expect(await screen.findByText("Vencida el 01/01/2020")).toBeTruthy();
+  expect(screen.getByText("Vence el 01/01/2099")).toBeTruthy();
 });

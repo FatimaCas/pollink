@@ -24,6 +24,18 @@ jest.mock("@react-navigation/native", () => ({
   useRoute: () => ({ params: { projectId: "p1", taskId: "t1" } }),
 }));
 
+
+// El calendario real se prueba aparte (dayPickerModal.test.tsx): aquí se simula
+// con un botón que elige el 31/12/2099.
+jest.mock("@/src/core/components/DayPickerModal", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Pressable } = require("react-native");
+  return {
+    DayPickerModal: ({ visible, onConfirm }: { visible: boolean; onConfirm: (d: Date) => void }) =>
+      visible ? <Pressable testID="dayPicker.pick" onPress={() => onConfirm(new Date(2099, 11, 31))} /> : null,
+  };
+});
+
 const task = (over: Partial<ProjectTask> = {}): ProjectTask => ({
   id: "t1",
   projectId: "p1",
@@ -55,7 +67,7 @@ beforeEach(() => {
   mockSessionUser = "u1";
 });
 
-test("completar el checklist guarda y avisa que la tarea terminó", async () => {
+test("completar el checklist guarda y la tarea queda terminada", async () => {
   const saveTaskProgress = jest.fn(async ({ task: t, description, subtasks }) => ({
     ...t,
     description,
@@ -70,7 +82,8 @@ test("completar el checklist guarda y avisa que la tarea terminó", async () => 
   fireEvent.press(screen.getByTestId("taskDetail.save"));
   await waitFor(() => expect(saveTaskProgress).toHaveBeenCalled());
   expect(saveTaskProgress.mock.calls[0][0].subtasks.every((s: { done: boolean }) => s.done)).toBe(true);
-  await waitFor(() => expect(screen.getByTestId("taskDetail.status").props.children.join("")).toContain("Terminada"));
+  // Ya guardado: el borrador coincide con la tarea y «Guardar» vuelve a apagarse.
+  await waitFor(() => expect(screen.getByTestId("taskDetail.save").props.accessibilityState?.disabled).toBe(true));
 });
 
 test("agregar una subtarea la suma al borrador", async () => {
@@ -90,7 +103,7 @@ test("agregar una subtarea la suma al borrador", async () => {
 test("una tarea vencida lo señala", async () => {
   setup({ getTasks: async () => [task({ deadline: new Date(2020, 0, 1) })] });
   const deadline = await screen.findByTestId("taskDetail.deadline");
-  expect(deadline.props.children).toContain("Vencida");
+  expect(deadline.props.children).toContain("Vencida el");
 });
 
 test("quien no la reservó no puede editarla", async () => {
@@ -98,17 +111,32 @@ test("quien no la reservó no puede editarla", async () => {
   setup({ getTasks: async () => [task()] });
   await screen.findByTestId("taskDetail.description");
   expect(screen.queryByTestId("taskDetail.save")).toBeNull();
-  expect(screen.getByText(/Solo quien reservó/)).toBeTruthy();
+  expect(screen.getByText("Solo quien reservó la tarea puede editarla.")).toBeTruthy();
 });
 
-test("el creador cambia la fecha límite", async () => {
+test("el creador cambia la fecha límite con el calendario", async () => {
   const updateTaskDeadline = jest.fn(async ({ task: t, deadline }) => ({ ...t, deadline }));
   setup({ getTasks: async () => [task()], updateTaskDeadline });
   fireEvent.press(await screen.findByTestId("taskDetail.editDeadline"));
-  fireEvent.changeText(screen.getByTestId("taskDetail.deadlineInput"), "31/12/2099");
-  fireEvent.press(screen.getByTestId("taskDetail.deadlineSave"));
+  fireEvent.press(screen.getByTestId("dayPicker.pick"));
   await waitFor(() => expect(updateTaskDeadline).toHaveBeenCalledWith(expect.objectContaining({ userId: "u1" })));
+  const { deadline } = updateTaskDeadline.mock.calls[0][0];
+  expect([deadline.getFullYear(), deadline.getMonth(), deadline.getDate(), deadline.getHours()]).toEqual([2099, 11, 31, 23]);
   await waitFor(() => expect(screen.getByTestId("taskDetail.deadline").props.children).toContain("31/12/2099"));
+});
+
+test("el creador quita la fecha límite", async () => {
+  const updateTaskDeadline = jest.fn(async ({ task: t, deadline }) => ({ ...t, deadline }));
+  setup({ getTasks: async () => [task({ deadline: new Date(2099, 0, 1) })], updateTaskDeadline });
+  fireEvent.press(await screen.findByTestId("taskDetail.clearDeadline"));
+  await waitFor(() => expect(updateTaskDeadline).toHaveBeenCalledWith(expect.objectContaining({ deadline: null })));
+  await waitFor(() => expect(screen.getByText("Sin fecha límite")).toBeTruthy());
+});
+
+test("una tarea sin reservar pide reservarla para editarla", async () => {
+  mockSessionUser = "u2";
+  setup({ getTasks: async () => [task({ status: "todo", assigneeId: null })] });
+  expect(await screen.findByText("Reserva la tarea para poder editarla.")).toBeTruthy();
 });
 
 test("quien no creó la tarea ni el proyecto no ve «Cambiar»", async () => {

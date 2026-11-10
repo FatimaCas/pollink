@@ -3,13 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { useSnackbar } from "@/src/core/feedback/SnackbarProvider";
-import { systemClock } from "@/src/core/utils/clock";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { ProjectTask } from "../../domain/entities/ProjectTask";
+import { TaskDeadline } from "../../domain/entities/TaskDeadline";
 import { TaskStatus } from "../../domain/entities/TaskStatus";
 import { TaskRepository } from "../../domain/repositories/TaskRepository";
-import { parseDeadlineInput } from "../utils/parseDeadlineInput";
 
 // Estado y acciones del tablero de un proyecto: las tareas agrupadas por
 // estado, crear una tarea y reservarla.
@@ -57,22 +56,11 @@ export function useTaskBoardViewModel(projectId: string) {
   const replace = (updated: ProjectTask) =>
     setTasks((current) => current.map((t) => (t.id === updated.id ? updated : t)));
 
-  // Crea la tarea; `deadlineText` es lo que se escribió («dd/mm/aaaa» o vacío).
-  // Responde `true` si se creó (la hoja se cierra) y `false` si no (se queda
-  // abierta con el aviso).
-  const createTask = async (params: { title: string; description: string; deadlineText: string }) => {
+  // Crea la tarea; `deadlineDay` es el día elegido (opcional) y vence al final de
+  // ese día. Responde `true` si se creó y `false` si no (el aviso ya salió).
+  const createTask = async (params: { title: string; description: string; deadlineDay: Date | null }) => {
     const title = params.title.trim();
-    if (title === "") {
-      show("Ponle un título a la tarea.", { error: true });
-      return false;
-    }
-    let deadline: Date | null;
-    try {
-      deadline = parseDeadlineInput(params.deadlineText, systemClock());
-    } catch (e) {
-      show(messageOf(e), { error: true });
-      return false;
-    }
+    if (title === "") return false;
     if (!ensureLoggedIn()) return false;
     setCreating(true);
     try {
@@ -80,7 +68,7 @@ export function useTaskBoardViewModel(projectId: string) {
         projectId,
         title,
         description: params.description.trim() || undefined,
-        deadline,
+        deadline: params.deadlineDay ? TaskDeadline.endOfDay(params.deadlineDay) : null,
       });
       setTasks((current) => [...current, created]);
       return true;
@@ -102,6 +90,7 @@ export function useTaskBoardViewModel(projectId: string) {
     setBusyTaskId(task.id);
     try {
       replace(await repo.reserveTask({ task, userId: user.userId }));
+      show('Tarea reservada. La encontrarás en "En Progreso".');
     } catch (e) {
       show(messageOf(e), { error: true });
       reload();

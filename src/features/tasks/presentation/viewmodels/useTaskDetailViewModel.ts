@@ -12,7 +12,6 @@ import { isDone, isOverdueAt, ProjectTask } from "../../domain/entities/ProjectT
 import { Subtask } from "../../domain/entities/Subtask";
 import { TaskDeadline } from "../../domain/entities/TaskDeadline";
 import { TaskRepository } from "../../domain/repositories/TaskRepository";
-import { parseDeadlineInput } from "../utils/parseDeadlineInput";
 
 // Estado y acciones de una tarea: descripción y checklist (un borrador que se
 // guarda de una vez) y la fecha límite (se guarda al instante).
@@ -27,6 +26,7 @@ export function useTaskDetailViewModel(projectId: string, taskId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingDeadline, setSavingDeadline] = useState(false);
 
   // El borrador: lo que la persona está editando, sin guardar todavía.
   const [description, setDescription] = useState("");
@@ -93,7 +93,11 @@ export function useTaskDetailViewModel(projectId: string, taskId: string) {
       setTask(updated);
       setDescription(updated.description);
       setSubtasks(updated.subtasks);
-      show(!isDone(task) && isDone(updated) ? "Tarea terminada." : "Cambios guardados.");
+      show(
+        !isDone(task) && isDone(updated)
+          ? 'Tarea guardada. Completaste todas las subtareas: pasó a "Terminadas".'
+          : "Tarea guardada. Tus cambios se guardaron.",
+      );
     } catch (e) {
       show(messageOf(e), { error: true });
     } finally {
@@ -101,22 +105,35 @@ export function useTaskDetailViewModel(projectId: string, taskId: string) {
     }
   };
 
-  // Cambia o quita la fecha límite; `text` vacío la quita. `true` si se guardó.
-  const saveDeadline = async (text: string) => {
+  // Por qué la persona no puede editar descripción y checklist (null si puede).
+  const readOnlyReason = canWork
+    ? null
+    : task?.status === "todo"
+      ? "Reserva la tarea para poder editarla."
+      : "Solo quien reservó la tarea puede editarla.";
+
+  // Cambia (`day`) o quita (null) la fecha límite; vence al final de ese día.
+  // `true` si se guardó.
+  const saveDeadline = async (day: Date | null) => {
     if (!task || !userId) return false;
-    let deadline: Date | null;
-    try {
-      deadline = parseDeadlineInput(text, systemClock());
-    } catch (e) {
-      show(messageOf(e), { error: true });
+    if (!canEditDeadline) {
+      show(
+        isDone(task)
+          ? "La tarea ya está terminada: su fecha límite no se puede cambiar."
+          : "Solo quien creó la tarea o el creador del proyecto puede cambiar la fecha límite.",
+        { error: true },
+      );
       return false;
     }
+    setSavingDeadline(true);
     try {
-      setTask(await repo.updateTaskDeadline({ task, deadline, userId }));
+      setTask(await repo.updateTaskDeadline({ task, deadline: day ? TaskDeadline.endOfDay(day) : null, userId }));
       return true;
     } catch (e) {
       show(messageOf(e), { error: true });
       return false;
+    } finally {
+      setSavingDeadline(false);
     }
   };
 
@@ -125,6 +142,8 @@ export function useTaskDetailViewModel(projectId: string, taskId: string) {
     loading,
     error,
     saving,
+    savingDeadline,
+    readOnlyReason,
     description,
     subtasks,
     canWork,

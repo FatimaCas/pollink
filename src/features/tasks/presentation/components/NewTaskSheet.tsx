@@ -1,13 +1,17 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
+import { Button, IconButton, Text, TextInput, useTheme } from "react-native-paper";
 
 import { BottomSheet } from "@/src/core/components/BottomSheet";
+import { DayPickerModal } from "@/src/core/components/DayPickerModal";
+import { systemClock } from "@/src/core/utils/clock";
 import { spacing } from "@/src/theme/tokens";
+import { TaskDeadline } from "../../domain/entities/TaskDeadline";
 
-// La hoja para crear una tarea: título, descripción opcional y fecha límite
-// opcional («dd/mm/aaaa»). Valida el view model; la hoja solo se cierra cuando
-// la tarea se creó.
+// La hoja para crear una tarea (el diálogo «Crear tarea» de Imker): nombre,
+// descripción opcional y fecha límite opcional elegida en el calendario. La hoja
+// solo se cierra cuando la tarea se creó.
 export function NewTaskSheet({
   visible,
   creating,
@@ -17,17 +21,25 @@ export function NewTaskSheet({
   visible: boolean;
   creating: boolean;
   onDismiss: () => void;
-  onSubmit: (values: { title: string; description: string; deadlineText: string }) => Promise<boolean>;
+  onSubmit: (values: { title: string; description: string; deadlineDay: Date | null }) => Promise<boolean>;
 }) {
+  const theme = useTheme();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [deadlineText, setDeadlineText] = useState("");
+  const [day, setDay] = useState<Date | null>(null);
+  const [showError, setShowError] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const submit = async () => {
-    if (await onSubmit({ title, description, deadlineText })) {
+    if (title.trim() === "") {
+      setShowError(true);
+      return;
+    }
+    if (await onSubmit({ title, description, deadlineDay: day })) {
       setTitle("");
       setDescription("");
-      setDeadlineText("");
+      setDay(null);
+      setShowError(false);
       onDismiss();
     }
   };
@@ -35,31 +47,58 @@ export function NewTaskSheet({
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <Text variant="titleLarge" style={styles.heading}>
-        Nueva tarea
+        Crear tarea
       </Text>
       <View style={styles.fields}>
-        <TextInput mode="outlined" label="Título" value={title} onChangeText={setTitle} testID="newTask.title" />
+        <TextInput
+          mode="outlined"
+          label="Nombre de la tarea"
+          value={title}
+          onChangeText={setTitle}
+          error={showError && title.trim() === ""}
+          testID="newTask.title"
+        />
+        {showError && title.trim() === "" ? <Text variant="bodySmall" style={{ color: theme.colors.error }}>Escribe un nombre</Text> : null}
         <TextInput
           mode="outlined"
           label="Descripción (opcional)"
           value={description}
           onChangeText={setDescription}
           multiline
+          numberOfLines={3}
           testID="newTask.description"
         />
-        <TextInput
-          mode="outlined"
-          label="Fecha límite (opcional)"
-          placeholder="dd/mm/aaaa"
-          value={deadlineText}
-          onChangeText={setDeadlineText}
-          keyboardType="numbers-and-punctuation"
-          testID="newTask.deadline"
-        />
-        <Button mode="contained" onPress={submit} loading={creating} disabled={creating} testID="newTask.submit">
-          Crear tarea
-        </Button>
+        <View style={styles.deadlineRow}>
+          <Button
+            mode="outlined"
+            icon={() => <MaterialCommunityIcons name="calendar-outline" size={20} color={theme.colors.onSurface} />}
+            style={styles.deadlineButton}
+            onPress={() => setPicking(true)}
+            testID="newTask.deadline"
+          >
+            {day ? `Límite: ${TaskDeadline.formatDay(day)}` : "Fecha límite (opcional)"}
+          </Button>
+          {day ? (
+            <IconButton icon="close" onPress={() => setDay(null)} accessibilityLabel="Quitar fecha límite" testID="newTask.deadline.clear" />
+          ) : null}
+        </View>
+        <View style={styles.actions}>
+          <Button onPress={onDismiss}>Cancelar</Button>
+          <Button mode="contained" onPress={submit} loading={creating} disabled={creating} testID="newTask.submit">
+            Crear
+          </Button>
+        </View>
       </View>
+      <DayPickerModal
+        visible={picking}
+        initial={day}
+        minDay={systemClock()}
+        onDismiss={() => setPicking(false)}
+        onConfirm={(picked) => {
+          setDay(picked);
+          setPicking(false);
+        }}
+      />
     </BottomSheet>
   );
 }
@@ -67,4 +106,7 @@ export function NewTaskSheet({
 const styles = StyleSheet.create({
   heading: { marginBottom: spacing.md },
   fields: { gap: spacing.md },
+  deadlineRow: { flexDirection: "row", alignItems: "center" },
+  deadlineButton: { flex: 1 },
+  actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
 });
