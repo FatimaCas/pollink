@@ -1,4 +1,4 @@
-import { darkTheme, lightTheme, themeFor } from "@/src/theme/theme";
+import { darkTheme, lightTheme, navigationFonts, themeFor } from "@/src/theme/theme";
 
 // Luminancia y contraste según WCAG 2.x.
 function rgb(color: string): [number, number, number] {
@@ -75,4 +75,8 @@ test("el tema sigue al esquema del sistema", () => {
   expect(themeFor("light")).toBe(lightTheme);
   expect(themeFor(null)).toBe(lightTheme);
   expect(themeFor("unspecified")).toBe(lightTheme);
+});
+
+test("el header y las pestañas de la navegación también usan Cabin", () => {
+  for (const font of Object.values(navigationFonts)) expect(font.fontFamily).toMatch(/^Cabin_/);
 });
