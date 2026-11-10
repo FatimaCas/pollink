@@ -249,22 +249,20 @@ export type RootStackParamList = {
 
 ## Pendientes
 
+La mayoría están asignados en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md)
+(tareas A1–A3).
+
 - Migrar `RootNavigator` (y `__tests__/support/renderScreen.tsx`) de
   `@react-navigation/native-stack` a `@react-navigation/stack`, y desinstalar
   `native-stack`.
 - Implementar la persistencia del estado de navegación en `App.tsx`.
-- Mover `useSellSheet` de `listings/presentation/components/` a
-  `listings/presentation/hooks/`.
 - Pasar al español los comentarios que están en inglés.
-- Agregar `.gitignore` (`node_modules`, `.env`, `.roble.mcp.env`, `.expo`,
-  `dist`) y `.env.example`, que el README menciona pero no existen.
-- Renombrar la app a Pollink (`package.json` "r_market", `app.json` "Mi carro",
-  slug, scheme, bundleIdentifier).
-- Revisar que `roble.schema.desired.json` y `roble_queries/` coincidan con el
-  proyecto de Roble de Pollink: hoy son los heredados de r_market.
-- Agregar `.roble.mcp.env.example`.
-- Escribir en el README la descripción de Pollink cuando el producto se aleje de
-  r_market (hoy describe la funcionalidad heredada).
-- Quitar de los comentarios las comparaciones con f_market/Flutter. Están en
-  unos 17 archivos de `src/` y `__tests__/`; se encuentran con
+- Reemplazar `roble.schema.desired.json` y `roble_queries/` por el esquema de
+  Pollink (`docs/class_diagram.puml`): hoy siguen siendo los de r_market (tarea A2).
+- Arreglar la prueba de integración «entrar con la cuenta de demo», que falla con
+  «Couldn't find a navigation context» desde antes de la limpieza.
+- Adaptar los textos y comentarios de `auth` que aún hablan de publicar,
+  preguntar o chatear (tarea A4).
+- Quitar de los comentarios las comparaciones con f_market/Flutter. Se
+  encuentran con
   `grep -rli "f_market\|flutter" src __tests__`.
