@@ -1,8 +1,9 @@
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { SegmentedTabs } from "@/src/core/components/SegmentedTabs";
@@ -25,9 +26,20 @@ const COLUMNS: { value: TaskStatus; label: string; empty: string }[] = [
 // la pantalla del proyecto, no de este tablero; «Asignaciones» sigue pendiente.
 export default function TaskBoardScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, "TaskBoard">>();
   const board = useTaskBoardViewModel(params.projectId);
+  // Al volver del detalle el estado de una tarea pudo cambiar: se relee el
+  // tablero (la primera vez ya lo cargó el view model).
+  const firstFocus = useRef(true);
+  const { reload } = board;
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) firstFocus.current = false;
+      else reload();
+    }, [reload]),
+  );
   const [column, setColumn] = useState<TaskStatus>("todo");
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -84,7 +96,7 @@ export default function TaskBoardScreen() {
         />
       )}
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: spacing.gutter + insets.bottom }]}>
         <Button mode="contained" onPress={() => setSheetOpen(true)} testID="taskBoard.new">
           Crear tarea
         </Button>

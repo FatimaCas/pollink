@@ -4,6 +4,7 @@ import type { RouteProp } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Checkbox, Divider, IconButton, Text, TextInput, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DayPickerModal } from "@/src/core/components/DayPickerModal";
 import { EmptyState } from "@/src/core/components/EmptyState";
@@ -18,6 +19,7 @@ import { useTaskDetailViewModel } from "../viewmodels/useTaskDetailViewModel";
 // Completar el checklist la termina. Los comentarios son de D7.
 export default function TaskDetailScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { params } = useRoute<RouteProp<RootStackParamList, "TaskDetail">>();
   const vm = useTaskDetailViewModel(params.projectId, params.taskId);
   const [newItem, setNewItem] = useState("");
@@ -47,7 +49,7 @@ export default function TaskDetailScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: theme.colors.background }}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: spacing.gutter + insets.bottom }]}
       keyboardShouldPersistTaps="handled"
     >
       <Text variant="titleLarge" style={styles.bold}>

@@ -137,3 +137,12 @@ test("una tarea vencida y una terminada se rotulan distinto", async () => {
   expect(await screen.findByText("Vencida el 01/01/2020")).toBeTruthy();
   expect(screen.getByText("Vence el 01/01/2099")).toBeTruthy();
 });
+
+test("cancelar descarta lo escrito", async () => {
+  setup({ getTasks: async () => [] });
+  fireEvent.press(await screen.findByTestId("taskBoard.new"));
+  fireEvent.changeText(screen.getByTestId("newTask.title"), "Algo");
+  fireEvent.press(screen.getByText("Cancelar"));
+  fireEvent.press(screen.getByTestId("taskBoard.new"));
+  expect(screen.getByTestId("newTask.title").props.value).toBe("");
+});

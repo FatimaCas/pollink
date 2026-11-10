@@ -30,22 +30,27 @@ export function NewTaskSheet({
   const [showError, setShowError] = useState(false);
   const [picking, setPicking] = useState(false);
 
+  // Cancelar o tocar fuera descarta lo escrito, como el diálogo de Imker.
+  const close = () => {
+    setTitle("");
+    setDescription("");
+    setDay(null);
+    setShowError(false);
+    onDismiss();
+  };
+
   const submit = async () => {
     if (title.trim() === "") {
       setShowError(true);
       return;
     }
     if (await onSubmit({ title, description, deadlineDay: day })) {
-      setTitle("");
-      setDescription("");
-      setDay(null);
-      setShowError(false);
-      onDismiss();
+      close();
     }
   };
 
   return (
-    <BottomSheet visible={visible} onDismiss={onDismiss}>
+    <BottomSheet visible={visible} onDismiss={close}>
       <Text variant="titleLarge" style={styles.heading}>
         Crear tarea
       </Text>
@@ -71,7 +76,15 @@ export function NewTaskSheet({
         <View style={styles.deadlineRow}>
           <Button
             mode="outlined"
-            icon={() => <MaterialCommunityIcons name="calendar-outline" size={20} color={theme.colors.onSurface} />}
+            icon={() => (
+              <MaterialCommunityIcons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.onSurface}
+                importantForAccessibility="no"
+                accessibilityElementsHidden
+              />
+            )}
             style={styles.deadlineButton}
             onPress={() => setPicking(true)}
             testID="newTask.deadline"
@@ -83,7 +96,7 @@ export function NewTaskSheet({
           ) : null}
         </View>
         <View style={styles.actions}>
-          <Button onPress={onDismiss}>Cancelar</Button>
+          <Button onPress={close}>Cancelar</Button>
           <Button mode="contained" onPress={submit} loading={creating} disabled={creating} testID="newTask.submit">
             Crear
           </Button>
