@@ -26,7 +26,7 @@ import { SessionProvider, useSession } from "./src/features/auth/presentation/co
 import { useNavigationPersistence } from "./src/navigation/navigationPersistence";
 import { navigationRef } from "./src/navigation/navigationRef";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { themeFor } from "./src/theme/theme";
+import { navigationFonts, themeFor } from "./src/theme/theme";
 
 // Expo Go doesn't support customizing the splash screen; only apply options in development/production builds.
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
@@ -92,6 +92,7 @@ export function AppRoot({ container, persistNavigation = true }: { container?: C
 
   const navigationTheme = {
     ...(scheme === "dark" ? DarkTheme : DefaultTheme),
+    fonts: navigationFonts,
     colors: {
       ...(scheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
       background: theme.colors.background,

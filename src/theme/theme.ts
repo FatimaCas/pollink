@@ -52,3 +52,12 @@ export const darkTheme: MD3Theme = {
 export function themeFor(scheme: string | null | undefined): MD3Theme {
   return scheme === "dark" ? darkTheme : lightTheme;
 }
+
+// Las fuentes del tema de React Navigation (título del header, etiquetas de las
+// pestañas): sin esto usan la fuente del sistema en vez de Cabin.
+export const navigationFonts = {
+  regular: { fontFamily: CABIN["400"], fontWeight: "400" as const },
+  medium: { fontFamily: CABIN["500"], fontWeight: "400" as const },
+  bold: { fontFamily: CABIN["600"], fontWeight: "400" as const },
+  heavy: { fontFamily: CABIN["700"], fontWeight: "400" as const },
+};
