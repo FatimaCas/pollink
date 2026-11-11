@@ -8,6 +8,8 @@ import { ProfileRepository } from "@/src/features/profile/domain/repositories/Pr
 import { ProfileProjects } from "@/src/features/profile/presentation/components/ProfileProjects";
 import { ProfileView } from "@/src/features/profile/presentation/components/ProfileView";
 import ProfileScreen from "@/src/features/profile/presentation/screens/ProfileScreen";
+import { NO_TRUST } from "@/src/features/trust/domain/entities/TrustMetrics";
+import { TrustRepository } from "@/src/features/trust/domain/repositories/TrustRepository";
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
 import { fake } from "../support/fake";
 import { profile } from "../support/profileFixtures";
@@ -30,7 +32,8 @@ jest.mock("@react-navigation/native", () => ({
 function setup({ me = profile(), projects = [] as ReturnType<typeof ownProject>[], getMyProfile }: { me?: ReturnType<typeof profile>; projects?: ReturnType<typeof ownProject>[]; getMyProfile?: ProfileRepository["getMyProfile"] } = {}) {
   const c = new Container()
     .register(TOKENS.ProfileRepo, fake<ProfileRepository>({ ensureMyProfile: async () => {}, getMyProfile: getMyProfile ?? (async () => me) }, "ProfileRepo"))
-    .register(TOKENS.ProjectRepo, fake<ProjectRepository>({ getProjectsOfPerson: async () => projects }, "ProjectRepo"));
+    .register(TOKENS.ProjectRepo, fake<ProjectRepository>({ getProjectsOfPerson: async () => projects }, "ProjectRepo"))
+    .register(TOKENS.TrustRepo, fake<TrustRepository>({ getTrustMetricsOf: async () => NO_TRUST }, "TrustRepo"));
   return renderScreen(ProfileScreen, c);
 }
 
@@ -124,4 +127,10 @@ describe("proyectos", () => {
     setup({ projects: [] });
     expect(await screen.findByTestId(ProfileProjects.emptyKey)).toBeTruthy();
   });
+});
+
+test("la pastilla de confianza abre el detalle de los indicadores", async () => {
+  setup();
+  fireEvent.press(await screen.findByTestId(ProfileScreen.trustKey));
+  expect(mockNavigate).toHaveBeenCalledWith("TrustIndicators", { userId: "u2" });
 });
