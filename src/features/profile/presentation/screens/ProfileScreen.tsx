@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandHeader } from "@/src/core/components/BrandHeader";
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { AccountPanel } from "@/src/features/auth/presentation/components/AccountPanel";
+import { TrustPill } from "@/src/features/trust/presentation/components/TrustPill";
 import { spacing } from "@/src/theme/tokens";
 import { CompleteProfileCard } from "../components/CompleteProfileCard";
 import { ProfilePill } from "../components/ProfilePill";
@@ -64,7 +65,12 @@ export default function ProfileScreen() {
         profile={vm.profile}
         name={vm.sessionName}
         emptyBio="Cuéntanos algo sobre ti."
-        actions={<ProfilePill label="Editar perfil" onPress={edit} testID={ProfileScreen.editKey} />}
+        actions={
+          <>
+            <ProfilePill label="Editar perfil" onPress={edit} testID={ProfileScreen.editKey} />
+            <TrustPill userId={vm.profile.userId} onPress={() => navigation.navigate("TrustIndicators", { userId: vm.profile!.userId })} testID={ProfileScreen.trustKey} />
+          </>
+        }
       >
         <ProfileProjects userId={vm.profile.userId} onOpenProject={(projectId) => navigation.navigate("ProjectInfo", { projectId })} />
       </ProfileView>
@@ -78,6 +84,7 @@ ProfileScreen.scrollKey = "profile.scroll";
 ProfileScreen.settingsKey = "profile.settings";
 ProfileScreen.completeKey = "profile.complete";
 ProfileScreen.editKey = "profile.edit";
+ProfileScreen.trustKey = "profile.trust";
 
 const styles = StyleSheet.create({
   loading: { flex: 1 },
