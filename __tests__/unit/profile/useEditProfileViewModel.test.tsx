@@ -118,3 +118,11 @@ test("no deja guardar si el perfil no pudo cargar (se pisaría con vacíos)", as
   expect(ok).toBe(false);
   expect(saved).toEqual([]);
 });
+
+test("isEmpty: sin nada escrito es verdadero; con cualquier dato, falso", async () => {
+  const { result } = render({ getMyProfile: async () => ({ ...profile(), career: { program: "", institution: "" }, bio: "  ", skills: [] }) });
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.isEmpty).toBe(true);
+  act(() => result.current.setProgram("Derecho"));
+  expect(result.current.isEmpty).toBe(false);
+});

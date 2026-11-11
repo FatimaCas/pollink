@@ -23,6 +23,8 @@ export function AccountPanel() {
   const saveAccount = async (form: SaveAccountForm) => {
     if (await session.upgrade(form)) {
       setSaving(false);
+      // Ya tiene cuenta: los primeros datos del perfil (se pueden omitir).
+      navigation.navigate("Onboarding");
       return;
     }
     if (session.lastFailureCode() === "ANON_UPGRADE_EMAIL_TAKEN") {

@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from "react-na
 import { Button, HelperText, Text, TextInput } from "react-native-paper";
 
 import { BrandHeader } from "@/src/core/components/BrandHeader";
+import { goToOnboarding } from "@/src/navigation/navigationRef";
 import { spacing } from "@/src/theme/tokens";
 import { useSession } from "../context/SessionContext";
 
@@ -20,8 +21,12 @@ export default function RegisterScreen() {
   }, [clearError]);
 
   const submit = async () => {
-    // Se cierran las dos rutas: registro y login.
-    if (await session.register(form)) navigation.dispatch(StackActions.pop(2));
+    // Se cierran las dos rutas: registro y login. Después, los primeros datos
+    // del perfil (se pueden omitir).
+    if (await session.register(form)) {
+      navigation.dispatch(StackActions.pop(2));
+      goToOnboarding();
+    }
   };
 
   return (
