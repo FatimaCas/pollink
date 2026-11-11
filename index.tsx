@@ -1,5 +1,3 @@
-// Va primero: el stack de React Navigation usa sus gestos (deslizar para volver).
-import 'react-native-gesture-handler';
 import '@expo/metro-runtime'; // Necessary for Fast Refresh on Web
 import { registerRootComponent } from 'expo';
 

@@ -10,7 +10,6 @@ export function SelectField<T>({
   onSelect,
   disabled,
   helper,
-  testID,
 }: {
   label: string;
   value: T | null;
@@ -18,8 +17,6 @@ export function SelectField<T>({
   onSelect: (value: T) => void;
   disabled?: boolean;
   helper?: string;
-  // El campo es `<testID>` y cada opción `<testID>.<valor>` (`null` es «null»).
-  testID?: string;
 }) {
   const [open, setOpen] = useState(false);
   const current = options.find((o) => o.value === value)?.label ?? "";
@@ -29,7 +26,7 @@ export function SelectField<T>({
         visible={open}
         onDismiss={() => setOpen(false)}
         anchor={
-          <Pressable onPress={() => !disabled && setOpen(true)} accessibilityLabel={label} accessibilityRole="button" testID={testID}>
+          <Pressable onPress={() => !disabled && setOpen(true)} accessibilityLabel={label} accessibilityRole="button">
             <View pointerEvents="none">
               <TextInput
                 mode="outlined"
@@ -46,7 +43,6 @@ export function SelectField<T>({
         {options.map((o) => (
           <Menu.Item
             key={o.label}
-            testID={testID ? `${testID}.${String(o.value)}` : undefined}
             title={o.label}
             onPress={() => {
               setOpen(false);

@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Pollink",
-    "slug": "pollink",
+    "name": "Mi carro",
+    "slug": "r_market",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "pollink",
+    "scheme": "rmarket",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "co.edu.uninorte.pollink"
+      "bundleIdentifier": "co.edu.uninorte.rmarket"
     },
     "android": {
-      "package": "co.edu.uninorte.pollink",
+      "package": "co.edu.uninorte.rmarket",
       "adaptiveIcon": {
         "backgroundColor": "#1B5E9B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

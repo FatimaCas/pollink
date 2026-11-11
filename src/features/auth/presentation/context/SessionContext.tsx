@@ -26,7 +26,7 @@ export type SessionViewModel = {
   // Entró sin cuenta: tiene sesión y escribe lo suyo, pero no tiene correo con
   // el que volver. Por eso se le ofrece «guarda tu cuenta» y no «cerrar sesión».
   isGuest: boolean;
-  // Una cuenta de verdad: lo que exigen postularse a un proyecto o crear uno.
+  // Una cuenta de verdad: lo que exigen publicar, chatear y calificar.
   hasAccount: boolean;
 
   // El nombre que un invitado eligió para firmar. Vive solo en la sesión.
@@ -45,10 +45,10 @@ export type SessionViewModel = {
   // de `ensureWritableSession`, antes de que el estado nuevo llegue al render.
   currentUser: () => AppUser | null;
 
-  // Garantiza una **cuenta** antes de postularse o crear un proyecto. Si no la
+  // Garantiza una **cuenta** antes de publicar, chatear o calificar. Si no la
   // hay, manda al login y responde `false`: la acción se repite al volver.
   ensureLoggedIn: () => boolean;
-  // Garantiza **algo** con lo que escribir (guardar un proyecto, comentar): si no hay
+  // Garantiza **algo** con lo que escribir (seguir, preguntar): si no hay
   // sesión, abre una de invitado.
   ensureWritableSession: () => Promise<boolean>;
 };

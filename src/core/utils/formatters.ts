@@ -9,12 +9,13 @@ function thousands(value: number): string {
 }
 
 export const Formatters = {
-  // Miles con punto: 1.250.
-  thousands,
+  price: (value: number) => `$ ${thousands(value)}`,
+
+  mileage: (km: number) => `${thousands(km)} km`,
 
   date: (value: Date) => `${value.getDate()} ${MONTHS[value.getMonth()]} ${value.getFullYear()}`,
 
-  // Antigüedad en palabras: «hace 3 h». Para listas y comentarios.
+  // Antigüedad en palabras: «hace 3 h». Para listas y chats.
   relative(value: Date, now: Date = new Date()): string {
     const minutes = Math.floor((now.getTime() - value.getTime()) / 60000);
     if (minutes < 1) return "ahora";
