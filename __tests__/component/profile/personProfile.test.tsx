@@ -1,9 +1,10 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
 
 import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
 import { emptyProfile } from "@/src/features/profile/domain/entities/UserProfile";
+import { FollowRepository } from "@/src/features/follows/domain/repositories/FollowRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { ProfileView } from "@/src/features/profile/presentation/components/ProfileView";
 import CollaborationHistoryScreen from "@/src/features/profile/presentation/screens/CollaborationHistoryScreen";
@@ -36,8 +37,9 @@ beforeEach(() => {
 });
 
 describe("PersonProfileScreen", () => {
-  function setup({ getProfileOf = async () => profile({ userId: "u9", name: "Mateo Ríos" }), projects = [ownProject({ id: "a", title: "Huerta" })] as ReturnType<typeof ownProject>[] } = {}) {
+  function setup({ getProfileOf = async () => profile({ userId: "u9", name: "Mateo Ríos" }), projects = [ownProject({ id: "a", title: "Huerta" })] as ReturnType<typeof ownProject>[], follows = {} as Partial<FollowRepository> } = {}) {
     const c = new Container()
+      .register(TOKENS.FollowRepo, fake<FollowRepository>({ followingIds: async () => [], followersCount: async () => 3, ...follows }, "FollowRepo"))
       .register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getProfileOf }, "ProfileRepo"))
       .register(TOKENS.ProjectRepo, fake<ProjectRepository>({ getProjectsOfPerson: async () => projects }, "ProjectRepo"))
       .register(TOKENS.TrustRepo, fake<TrustRepository>({ getTrustMetricsOf: async () => NO_TRUST }, "TrustRepo"));
@@ -49,6 +51,33 @@ describe("PersonProfileScreen", () => {
     expect(await screen.findByTestId(ProfileView.nameKey)).toHaveTextContent("Mateo Ríos");
     expect(screen.getByTestId(ProfileView.programKey)).toHaveTextContent("Diseño Gráfico");
     expect(screen.queryByText("Editar perfil")).toBeNull();
+  });
+
+  test("muestra los seguidores y deja seguir a la persona", async () => {
+    const follow = jest.fn(async () => {});
+    setup({ follows: { follow } });
+    expect(await screen.findByTestId(PersonProfileScreen.followersKey)).toHaveTextContent("3 seguidores");
+    fireEvent.press(screen.getByTestId(PersonProfileScreen.followKey));
+    expect(await screen.findByText("Siguiendo")).toBeTruthy();
+    expect(follow).toHaveBeenCalledWith({ followerId: "u2", followedId: "u9" });
+  });
+
+  test("al dejar de seguir, el contador se vuelve a pedir", async () => {
+    let count = 1;
+    const unfollow = jest.fn(async () => {
+      count = 0;
+    });
+    setup({ follows: { followingIds: async () => ["u9"], followersCount: async () => count, unfollow } });
+    expect(await screen.findByTestId(PersonProfileScreen.followersKey)).toHaveTextContent("1 seguidor");
+    fireEvent.press(await screen.findByText("Siguiendo"));
+    await waitFor(() => expect(screen.getByTestId(PersonProfileScreen.followersKey)).toHaveTextContent("0 seguidores"));
+  });
+
+  test("en su propio perfil no hay botón de seguir", async () => {
+    mockParams = { userId: "u2" };
+    setup({ getProfileOf: async () => profile({ userId: "u2", name: "Laura Pérez" }) });
+    await screen.findByTestId(ProfileView.nameKey);
+    expect(screen.queryByTestId(PersonProfileScreen.followKey)).toBeNull();
   });
 
   test("sin fila de perfil usa un nombre genérico", async () => {

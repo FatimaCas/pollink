@@ -12,4 +12,5 @@ export const TOKENS = {
   InvitationRepo: Symbol("InvitationRepo"), // C · invitations
   MembersRepo: Symbol("MembersRepo"), // D · members
   TaskRepo: Symbol("TaskRepo"), // D · tasks
+  FollowRepo: Symbol("FollowRepo"), // follows
 } as const;

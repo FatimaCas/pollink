@@ -1,5 +1,6 @@
 import { registerAuth } from "@/src/features/auth/di";
 import { registerDiscover } from "@/src/features/discover/di";
+import { registerFollows } from "@/src/features/follows/di";
 import { registerInvitations } from "@/src/features/invitations/di";
 import { registerMembers } from "@/src/features/members/di";
 import { registerProfile } from "@/src/features/profile/di";
@@ -28,5 +29,6 @@ export function createAppContainer(): Container {
   registerInvitations(c, client);
   registerMembers(c, client);
   registerTasks(c, client);
+  registerFollows(c, client);
   return c;
 }

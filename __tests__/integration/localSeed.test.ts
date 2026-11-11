@@ -6,6 +6,7 @@ import { TOKENS } from "@/src/core/di/tokens";
 import { AuthRepository } from "@/src/features/auth/domain/repositories/AuthRepository";
 import { NO_FILTER } from "@/src/features/discover/domain/entities/ProjectFilter";
 import { DiscoverRepository } from "@/src/features/discover/domain/repositories/DiscoverRepository";
+import { FollowRepository } from "@/src/features/follows/domain/repositories/FollowRepository";
 import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
 import { JoinRequestRepository } from "@/src/features/requests/domain/repositories/JoinRequestRepository";
@@ -37,4 +38,7 @@ test("los datos locales dejan a Ana con proyectos, solicitudes, una invitación 
 
   expect(feed.projects.some((p) => p.status === "closed")).toBe(true);
   expect((await c.resolve<TrustRepository>(TOKENS.TrustRepo).getTrustMetricsOf(ana.userId)).hasHistory).toBe(true);
+  const follows = c.resolve<FollowRepository>(TOKENS.FollowRepo);
+  expect((await follows.followingIds(ana.userId)).length).toBeGreaterThanOrEqual(3);
+  expect(await follows.followersCount(ana.userId)).toBeGreaterThanOrEqual(3);
 });

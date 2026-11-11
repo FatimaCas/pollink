@@ -12,6 +12,7 @@ export const TABLES = {
   projectInvitation: "project_invitation",
   task: "task",
   contribution: "contribution",
+  userFollow: "user_follow",
 } as const;
 
 // Consultas guardadas (`roble_queries/<nombre>.sql`), para `executeQueryByName`.

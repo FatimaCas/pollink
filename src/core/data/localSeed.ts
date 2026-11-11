@@ -6,6 +6,7 @@ import { InvitationRepository } from "@/src/features/invitations/domain/reposito
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
+import { FollowRepository } from "@/src/features/follows/domain/repositories/FollowRepository";
 import { JoinRequestRepository } from "@/src/features/requests/domain/repositories/JoinRequestRepository";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { DummyData } from "./dummyData";
@@ -226,6 +227,7 @@ export async function seedLocalData(container: Container): Promise<void> {
   const invitations = container.resolve<InvitationRepository>(TOKENS.InvitationRepo);
   const tasks = container.resolve<TaskRepository>(TOKENS.TaskRepo);
   const discover = container.resolve<DiscoverRepository>(TOKENS.DiscoverRepo);
+  const follows = container.resolve<FollowRepository>(TOKENS.FollowRepo);
 
   const ids: Record<string, string> = {};
   const as = async (key: string) => {
@@ -295,6 +297,20 @@ export async function seedLocalData(container: Container): Promise<void> {
       await as(who);
       await discover.save({ userId: ids[who], projectId: project.id });
     }
+  }
+
+  // Quién sigue a quién: Ana sigue a varias personas y varias la siguen.
+  const FOLLOWS: [string, string[]][] = [
+    ["ana", ["ifeoma", "teo", "xio"]],
+    ["ifeoma", ["ana", "teo"]],
+    ["teo", ["ana"]],
+    ["xio", ["ana", "ifeoma"]],
+    ["anselmo", ["ana", "dayana"]],
+    ["dayana", ["cristobal"]],
+  ];
+  for (const [who, followed] of FOLLOWS) {
+    await as(who);
+    for (const other of followed) await follows.follow({ followerId: ids[who], followedId: ids[other] });
   }
 
   // La app arranca en Descubrir, sin sesión.

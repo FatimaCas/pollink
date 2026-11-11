@@ -1,9 +1,12 @@
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
+import { useFollowersCount } from "@/src/features/follows/presentation/hooks/useFollowersCount";
+import { useFollowToggle } from "@/src/features/follows/presentation/hooks/useFollowToggle";
+import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
 import { RootStackParamList } from "@/src/navigation/types";
 import { TrustPill } from "@/src/features/trust/presentation/components/TrustPill";
 import { spacing } from "@/src/theme/tokens";
@@ -19,6 +22,11 @@ export default function PersonProfileScreen() {
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, "PersonProfile">>();
   const vm = usePersonProfileViewModel(params.userId);
+  const { currentUser } = useSession();
+  const follow = useFollowToggle([params.userId]);
+  const isFollowing = follow.isFollowing(params.userId);
+  const followers = useFollowersCount(params.userId, follow.settled);
+  const isMe = currentUser()?.userId === params.userId;
 
   if (vm.loading && !vm.profile) return <ActivityIndicator style={styles.loading} testID={PersonProfileScreen.loadingKey} />;
 
@@ -44,11 +52,31 @@ export default function PersonProfileScreen() {
         profile={vm.profile}
         name="Usuario"
         actions={
-          params.projectId ? (
-            <TrustPill userId={userId} onPress={() => navigation.navigate("TrustIndicators", { userId })} testID={PersonProfileScreen.trustKey} />
+          params.projectId || !isMe ? (
+            <>
+              {params.projectId ? (
+                <TrustPill userId={userId} onPress={() => navigation.navigate("TrustIndicators", { userId })} testID={PersonProfileScreen.trustKey} />
+              ) : null}
+              {isMe ? null : (
+                <Button
+                  mode={isFollowing ? "outlined" : "contained-tonal"}
+                  compact
+                  onPress={() => follow.toggle(userId)}
+                  testID={PersonProfileScreen.followKey}
+                >
+                  {isFollowing ? "Siguiendo" : "Seguir"}
+                </Button>
+              )}
+            </>
           ) : undefined
         }
       >
+        {followers !== null ? (
+          <Text variant="bodyMedium" style={styles.followers} testID={PersonProfileScreen.followersKey}>
+            {followers === 1 ? "1 seguidor" : `${followers} seguidores`}
+          </Text>
+        ) : null}
+        {follow.error ? <Text variant="bodySmall" style={styles.followers}>{follow.error}</Text> : null}
         <ProfileProjects
           userId={userId}
           title="En qué anda"
@@ -68,8 +96,11 @@ PersonProfileScreen.retryKey = "personProfile.retry";
 PersonProfileScreen.scrollKey = "personProfile.scroll";
 PersonProfileScreen.trustKey = "personProfile.trust";
 PersonProfileScreen.historyKey = "personProfile.history";
+PersonProfileScreen.followKey = "personProfile.follow";
+PersonProfileScreen.followersKey = "personProfile.followers";
 
 const styles = StyleSheet.create({
   loading: { flex: 1 },
+  followers: { textAlign: "center" },
   content: { paddingVertical: spacing.lg, paddingBottom: spacing.xl },
 });

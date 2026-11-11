@@ -6,6 +6,7 @@ import { Button, IconButton, Text, useTheme } from "react-native-paper";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { PersonRow } from "@/src/core/components/PersonRow";
+import { useFollowToggle } from "@/src/features/follows/presentation/hooks/useFollowToggle";
 import { Formatters } from "@/src/core/utils/formatters";
 import type { RootStackParamList } from "@/src/navigation/types";
 import { spacing } from "@/src/theme/tokens";
@@ -13,15 +14,15 @@ import { MEMBER_ROLE_LABELS } from "../../domain/entities/MemberStay";
 import { useProjectMembersViewModel } from "../viewmodels/useProjectMembersViewModel";
 
 // La pestaña «Miembros» de un proyecto: quién está hoy, con su papel y desde
-// cuándo; tocar a alguien abre su perfil (B7). «Seguir» del Figma se muestra
-// desactivado con un aviso (no hay relación seguir en el esquema) y la carrera
-// queda fuera: depende del directorio de B. La barra Miembros · Tareas · Asignaciones es de la pantalla del
+// cuándo; tocar a alguien abre su perfil (B7). «Seguir» / «Siguiendo» usa la
+// feature `follows`; un invitado lo ve y, al tocarlo, se le pide iniciar sesión. La barra Miembros · Tareas · Asignaciones es de la pantalla del
 // proyecto (C4).
 export default function ProjectMembersScreen() {
   const theme = useTheme();
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RootStackParamList, "ProjectMembers">>();
   const vm = useProjectMembersViewModel(params.projectId);
+  const follow = useFollowToggle(vm.members.map((m) => m.userId));
 
   const confirm = (title: string, message: string, confirmLabel: string, run: () => Promise<string | null>, after?: () => void) =>
     Alert.alert(title, message, [
@@ -63,9 +64,11 @@ export default function ProjectMembersScreen() {
             <Text variant="titleMedium" testID="members.count">
               {vm.members.length === 1 ? "1 miembro" : `${vm.members.length} miembros`}
             </Text>
-            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }} testID="members.followSoon">
-              Seguir a otros miembros llegará pronto.
-            </Text>
+            {follow.error ? (
+              <Text variant="bodySmall" style={{ color: theme.colors.error }} testID="members.followError">
+                {follow.error}
+              </Text>
+            ) : null}
           </View>
         }
         ListFooterComponent={
@@ -105,8 +108,14 @@ export default function ProjectMembersScreen() {
               action={
                 item.userId === vm.userId ? undefined : (
                   <View style={styles.actions}>
-                    <Button mode="contained-tonal" compact disabled labelStyle={styles.followLabel} testID={`members.follow.${item.userId}`}>
-                      Seguir
+                    <Button
+                      mode={follow.isFollowing(item.userId) ? "outlined" : "contained-tonal"}
+                      compact
+                      labelStyle={styles.followLabel}
+                      testID={`members.follow.${item.userId}`}
+                      onPress={() => follow.toggle(item.userId)}
+                    >
+                      {follow.isFollowing(item.userId) ? "Siguiendo" : "Seguir"}
                     </Button>
                     {vm.canRemove(item) ? (
                       <IconButton
