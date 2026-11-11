@@ -268,8 +268,6 @@ Los de producto están asignados en [docs/plan-de-trabajo.md](docs/plan-de-traba
 - Verificar el esquema contra el proyecto de Roble de Pollink: correr
   `roble_schema_plan` (MCP) y `npm run smoke` con un `.env` real, y crear las
   consultas de `roble_queries/` que falten (tarea A2).
-- Adaptar los textos y comentarios de `auth` que aún hablan de publicar,
-  preguntar o chatear (tarea A4).
 - Quitar de los comentarios las comparaciones con f_market/Flutter. Se
   encuentran con
   `grep -rli "f_market\|flutter" src __tests__`.
