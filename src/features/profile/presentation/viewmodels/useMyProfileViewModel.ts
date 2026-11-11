@@ -54,6 +54,8 @@ export function useMyProfileViewModel() {
   return {
     needsAccount,
     isGuest,
+    // Nombre de la sesión: respaldo si la fila de perfil no trae el suyo.
+    sessionName: name,
     profile: shown,
     loading: needsAccount ? false : loading,
     error: needsAccount ? null : error,
