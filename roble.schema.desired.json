@@ -346,6 +346,35 @@
           "nullable": false
         }
       ]
+    },
+    {
+      "table": "user_follow",
+      "uses": [
+        "create",
+        "read",
+        "delete"
+      ],
+      "owns": true,
+      "public": true,
+      "columns": [
+        {
+          "name": "follower_id",
+          "type": "uuid",
+          "nullable": false,
+          "primary": true
+        },
+        {
+          "name": "followed_id",
+          "type": "uuid",
+          "nullable": false,
+          "primary": true
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      ]
     }
   ]
 }

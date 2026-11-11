@@ -6,6 +6,7 @@ import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
+import { FollowRepository } from "@/src/features/follows/domain/repositories/FollowRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import ProjectMembersScreen from "@/src/features/members/presentation/screens/ProjectMembersScreen";
 import { profile } from "../../support/profileFixtures";
@@ -39,10 +40,12 @@ function setup(
   tasks: Partial<TaskRepository> = {},
   names: Record<string, string> = {},
   getProfileOf?: ProfileRepository["getProfileOf"],
+  follows: Partial<FollowRepository> = {},
 ) {
   const c = new Container();
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(tasks, "TaskRepo"));
   c.register(TOKENS.MembersRepo, fake<MembersRepository>(repo, "MembersRepo"));
+  c.register(TOKENS.FollowRepo, fake<FollowRepository>({ followingIds: async () => [], ...follows }, "FollowRepo"));
   c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => names, ...(getProfileOf && { getProfileOf }) }, "ProfileRepo"));
   return renderScreen(ProjectMembersScreen, c);
 }
@@ -95,12 +98,36 @@ test("un invitado ve la lista de miembros, sin «Salir» ni «Quitar»", async (
   expect(screen.queryByLabelText("Quitar del proyecto")).toBeNull();
 });
 
-test("«Seguir» sale desactivado, no en la fila propia, con el aviso discreto", async () => {
-  setup({ activeMembers: async () => members });
+test("«Seguir» no sale en la fila propia y cambia a «Siguiendo» al tocarlo", async () => {
+  const follow = jest.fn(async () => {});
+  setup({ activeMembers: async () => members }, {}, {}, undefined, { follow });
   await screen.findByText("2 miembros");
-  expect(screen.getByTestId("members.follow.u1")).toBeTruthy();
   expect(screen.queryByTestId("members.follow.u2")).toBeNull();
-  expect(screen.getByTestId("members.followSoon")).toBeTruthy();
+  expect(screen.queryByTestId("members.followSoon")).toBeNull();
+  fireEvent.press(screen.getByTestId("members.follow.u1"));
+  await waitFor(() => expect(screen.getByText("Siguiendo")).toBeTruthy());
+  expect(follow).toHaveBeenCalledWith({ followerId: "u2", followedId: "u1" });
+});
+
+test("si seguir falla, vuelve a «Seguir» y avisa", async () => {
+  setup({ activeMembers: async () => members }, {}, {}, undefined, {
+    follow: async () => {
+      throw new Error("sin red");
+    },
+  });
+  await screen.findByText("2 miembros");
+  fireEvent.press(screen.getByTestId("members.follow.u1"));
+  expect(await screen.findByTestId("members.followError")).toBeTruthy();
+  expect(screen.getByText("Seguir")).toBeTruthy();
+});
+
+test("un invitado ve «Seguir» pero no se guarda nada", async () => {
+  mockGuest = true;
+  const follow = jest.fn(async () => {});
+  setup({ activeMembers: async () => members }, {}, {}, undefined, { follow });
+  await screen.findByText("2 miembros");
+  fireEvent.press(screen.getByTestId("members.follow.u1"));
+  expect(follow).not.toHaveBeenCalled();
 });
 
 test("tocar una fila abre el perfil de esa persona", async () => {

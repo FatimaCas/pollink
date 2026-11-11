@@ -1,5 +1,6 @@
 import { registerAuthLocal } from "@/src/features/auth/di";
 import { registerDiscoverLocal } from "@/src/features/discover/di";
+import { registerFollowsLocal } from "@/src/features/follows/di";
 import { registerInvitationsLocal } from "@/src/features/invitations/di";
 import { registerMembersLocal } from "@/src/features/members/di";
 import { registerProfileLocal } from "@/src/features/profile/di";
@@ -25,5 +26,6 @@ export function createLocalContainer(data: DummyData = new DummyData()): Contain
   registerInvitationsLocal(c, data);
   registerMembersLocal(c, data);
   registerTasksLocal(c, data);
+  registerFollowsLocal(c, data);
   return c;
 }

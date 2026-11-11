@@ -24,8 +24,8 @@ y CONVENTIONS.md se contradicen, manda CONVENTIONS.md.
   un proyecto.
 - **Solicitudes e invitaciones:** el creador acepta o rechaza a quien se
   postula; quien recibe una invitación la acepta o la rechaza.
-- **Miembros:** lista de integrantes con su papel y su carrera; salir de un proyecto o quitar
-  a alguien (sus tareas sin terminar quedan libres).
+- **Miembros y perfil:** lista de integrantes con su papel y su carrera; salir de un proyecto o quitar
+  a alguien (sus tareas sin terminar quedan libres); seguir a otras personas y ver cuántas te siguen.
 - **Tareas:** tablero Pendientes · En progreso · Terminadas, fecha límite
   opcional, reservar una tarea, checklist (completarlo la termina) y
   comentarios.
