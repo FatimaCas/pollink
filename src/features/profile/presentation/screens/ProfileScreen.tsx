@@ -72,7 +72,7 @@ export default function ProfileScreen() {
           </>
         }
       >
-        <ProfileProjects userId={vm.profile.userId} onOpenProject={(projectId) => navigation.navigate("ProjectInfo", { projectId })} />
+        <ProfileProjects userId={vm.profile.userId} emptyText="Todavía no participas en ningún proyecto." onOpenProject={(projectId) => navigation.navigate("ProjectInfo", { projectId })} />
       </ProfileView>
     </ScrollView>
   );
