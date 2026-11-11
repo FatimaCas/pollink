@@ -5,6 +5,8 @@ import { DummyData } from "@/src/core/data/dummyData";
 import { createLocalContainer } from "@/src/core/di/localContainer";
 import { TABLES } from "@/src/core/roble/tables";
 import ProjectDetailScreen from "@/src/features/projects/presentation/screens/ProjectDetailScreen";
+import { CloseProjectDialog } from "@/src/features/projects/presentation/components/CloseProjectDialog";
+import { ProjectActionsMenu } from "@/src/features/projects/presentation/components/ProjectActionsMenu";
 import ProjectInfoScreen from "@/src/features/projects/presentation/screens/ProjectInfoScreen";
 import { renderScreen } from "../support/renderScreen";
 
@@ -126,5 +128,58 @@ describe("ProjectInfoScreen", () => {
         skills: JSON.stringify(["Postres", "Costos", "Repostería"]),
       }),
     );
+  });
+});
+
+describe("cerrar proyecto (C5)", () => {
+  const K = ProjectInfoScreen;
+
+  // Abre ⋮ y elige «Cerrar proyecto». El menú de Paper ignora toques mientras
+  // termina de aparecer: se reintenta hasta que el diálogo se abre.
+  async function openCloseDialog() {
+    await screen.findByTestId(K.statusKey);
+    fireEvent.press(screen.getByTestId(ProjectActionsMenu.openKey));
+    await waitFor(() => {
+      fireEvent.press(screen.getByTestId(ProjectActionsMenu.closeKey));
+      expect(screen.getByTestId(CloseProjectDialog.confirmKey)).toBeTruthy();
+    });
+  }
+
+  test("el creador lo cierra desde ⋮, confirma y queda cerrado", async () => {
+    const data = setup(ProjectInfoScreen, "p_1", "u_ana");
+    expect(await screen.findByTestId(K.statusKey)).toHaveTextContent("Abierto");
+    await openCloseDialog();
+    expect(screen.getByText("¿Cerrar «Fresitas»?")).toBeTruthy();
+    fireEvent.press(screen.getByTestId(CloseProjectDialog.confirmKey));
+
+    await waitFor(() => expect(data.table(TABLES.project).find((p) => p._id === "p_1")?.status).toBe("closed"));
+    expect(await screen.findByTestId("closedProjectBanner")).toBeTruthy();
+    expect(screen.getByTestId(K.statusKey)).toHaveTextContent("Cerrado");
+    // Ya cerrado: no hay ⋮ y la info básica no se edita.
+    await waitFor(() => expect(screen.queryByTestId(ProjectActionsMenu.openKey)).toBeNull());
+    fireEvent.press(screen.getByTestId(`${K.tabsKey}.info`));
+    expect(screen.getByTestId(K.readOnlyKey)).toHaveTextContent(/El proyecto está cerrado/);
+  });
+
+  test("cancelar no cierra nada", async () => {
+    const data = setup(ProjectInfoScreen, "p_1", "u_ana");
+    await openCloseDialog();
+    fireEvent.press(screen.getByTestId(CloseProjectDialog.cancelKey));
+    // (El diálogo se va con una animación que en Jest no siempre termina: se
+    // comprueba lo que importa, que el proyecto sigue abierto.)
+    expect(data.table(TABLES.project).find((p) => p._id === "p_1")?.status).toBe("open");
+    expect(screen.getByTestId(K.statusKey)).toHaveTextContent("Abierto");
+    expect(screen.getByTestId(ProjectActionsMenu.openKey)).toBeTruthy();
+  });
+
+  test("un miembro no tiene ⋮", async () => {
+    setup(ProjectInfoScreen, "p_1", "u_beto");
+    await screen.findByTestId(K.percentKey);
+    expect(screen.queryByTestId(ProjectActionsMenu.openKey)).toBeNull();
+  });
+
+  test("el detalle público muestra el estado", async () => {
+    setup(ProjectDetailScreen, "p_3");
+    expect(await screen.findByTestId(ProjectDetailScreen.statusKey)).toHaveTextContent("Cerrado");
   });
 });

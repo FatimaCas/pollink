@@ -14,6 +14,7 @@ import { isOpen } from "../../domain/entities/Project";
 import { ProjectRelation } from "../../domain/entities/ProjectRelation";
 import { ClosedProjectBanner } from "../components/ClosedProjectBanner";
 import { LabelChips } from "../components/LabelChips";
+import { ProjectStatusLabel } from "../components/ProjectStatusLabel";
 import { useProjectDetailViewModel } from "../viewmodels/useProjectDetailViewModel";
 
 // Lo que se le dice a la persona según su relación con el proyecto. `null`:
@@ -98,6 +99,10 @@ export default function ProjectDetailScreen() {
           <Text variant="labelLarge" style={muted} testID={ProjectDetailScreen.membersKey}>
             {members}
           </Text>
+          <Text variant="labelLarge" style={muted}>
+            ·
+          </Text>
+          <ProjectStatusLabel status={project.status} testID={ProjectDetailScreen.statusKey} />
         </View>
       </View>
 
@@ -170,6 +175,7 @@ ProjectDetailScreen.loadingKey = "projectDetail.loading";
 ProjectDetailScreen.retryKey = "projectDetail.retry";
 ProjectDetailScreen.titleKey = "projectDetail.title";
 ProjectDetailScreen.membersKey = "projectDetail.members";
+ProjectDetailScreen.statusKey = "projectDetail.status";
 ProjectDetailScreen.saveKey = "projectDetail.save";
 ProjectDetailScreen.relationKey = "projectDetail.relation";
 ProjectDetailScreen.openKey = "projectDetail.open";

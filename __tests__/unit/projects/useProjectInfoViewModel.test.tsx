@@ -100,3 +100,45 @@ test("un borrador sin nombre o un error del servidor quedan en saveError", async
   });
   expect(result.current.saveError).toBe("El proyecto está cerrado: ya no se puede editar.");
 });
+
+describe("close (C5)", () => {
+  test("el creador cierra el proyecto: queda cerrado y ya no se edita", async () => {
+    const closeProject = jest.fn(async () => ownProject({ status: "closed" }));
+    const result = render({ closeProject });
+    await loaded(result);
+    expect(result.current.canClose).toBe(true);
+    await act(async () => {
+      expect(await result.current.close()).toBe(true);
+    });
+    expect(closeProject).toHaveBeenCalledWith("p1");
+    expect(result.current).toMatchObject({ canClose: false, canEdit: false, closing: false });
+    expect(result.current.project?.status).toBe("closed");
+  });
+
+  test("un miembro no puede cerrarlo", async () => {
+    const closeProject = jest.fn();
+    const result = render({ getProject: async () => ownProject({ ownerId: "u9" }), closeProject });
+    await loaded(result);
+    expect(result.current.canClose).toBe(false);
+    await act(async () => {
+      expect(await result.current.close()).toBe(false);
+    });
+    expect(closeProject).not.toHaveBeenCalled();
+  });
+
+  test("uno ya cerrado no se vuelve a cerrar", async () => {
+    const result = render({ getProject: async () => ownProject({ status: "closed" }) });
+    await loaded(result);
+    expect(result.current.canClose).toBe(false);
+  });
+
+  test("si falla, el proyecto sigue abierto", async () => {
+    const result = render({ closeProject: jest.fn().mockRejectedValue(new Error("sin red")) });
+    await loaded(result);
+    await act(async () => {
+      expect(await result.current.close()).toBe(false);
+    });
+    expect(result.current.project?.status).toBe("open");
+    expect(result.current.closing).toBe(false);
+  });
+});
