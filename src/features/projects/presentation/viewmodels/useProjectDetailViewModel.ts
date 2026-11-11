@@ -11,7 +11,7 @@ import { MembersRepository } from "@/src/features/members/domain/repositories/Me
 import { ProjectInvitation } from "@/src/features/invitations/domain/entities/ProjectInvitation";
 import { isPending as isPendingRequest, JoinRequest } from "@/src/features/requests/domain/entities/JoinRequest";
 import { JoinRequestRepository } from "@/src/features/requests/domain/repositories/JoinRequestRepository";
-import { Project } from "../../domain/entities/Project";
+import { isOpen, Project } from "../../domain/entities/Project";
 import { ProjectRelation, relationOf } from "../../domain/entities/ProjectRelation";
 import { ProjectRepository } from "../../domain/repositories/ProjectRepository";
 
@@ -67,7 +67,8 @@ export function useProjectDetailViewModel(projectId: string) {
           relationOf(found, {
             userId,
             isActiveMember: !!account && memberIds.includes(account),
-            hasPendingInvitation: myInvitations.some((i) => i.projectId === projectId),
+            // Un proyecto cerrado no recibe invitaciones: no hay nada que responder.
+            hasPendingInvitation: isOpen(found) && myInvitations.some((i) => i.projectId === projectId),
             hasPendingRequest: projectRequests.some((r) => r.userId === account && isPendingRequest(r)),
             isSaved,
           }),

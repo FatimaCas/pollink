@@ -26,6 +26,18 @@ export interface ProjectInvitation {
 
 export const isPending = (invitation: ProjectInvitation) => invitation.status === "pending";
 
+// Las invitaciones que la persona todavía puede responder: pendientes, de un
+// proyecto que existe y sigue abierto, y donde no colabora ya (p. ej. le
+// aceptaron una solicitud por otra vía). `openProjectIds` son los proyectos
+// abiertos que existen; `memberOf`, aquellos en los que ya está.
+export function answerable(
+  invitations: readonly ProjectInvitation[],
+  openProjectIds: ReadonlySet<string>,
+  memberOf: ReadonlySet<string>,
+): ProjectInvitation[] {
+  return invitations.filter((i) => isPending(i) && openProjectIds.has(i.projectId) && !memberOf.has(i.projectId));
+}
+
 // Una cuenta encontrada por correo, lista para invitarla.
 export interface Invitee {
   email: string;
