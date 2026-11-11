@@ -1,6 +1,7 @@
 import { Clock, systemClock } from "@/src/core/utils/clock";
 import { guardRoble, parseDate, Row, textOrNull } from "@/src/core/roble/guard";
 import { currentStay, finishedFor, MemberStay } from "@/src/features/members/domain/entities/MemberStay";
+import { isOwner } from "@/src/features/members/domain/entities/ProjectMember";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { TasksFailure } from "../../domain/TasksFailure";
 import { isDone, progressOf, ProjectTask, statusAfterSaving } from "../../domain/entities/ProjectTask";
@@ -75,17 +76,15 @@ export class TaskRepositoryImpl implements TaskRepository {
   }
 
   async reserveTask({ task, userId }: { task: ProjectTask; userId: string }) {
-    const current = await this.freshTask(task);
-    const takenByOther = current.assigneeId !== null && current.assigneeId !== userId;
-    if (current.status !== "todo" || takenByOther) {
-      throw new TasksFailure("Esta tarea ya fue reservada por otra persona.");
-    }
-    await this.guard(() => this.source.updateTask(task.id, { assignee_id: userId, status: "doing" satisfies TaskStatus }));
-    // Pasar de todo a doing no cambia cuántas están terminadas, así que el
-    // progreso sigue igual. Sí es una tarea más tomada, salvo que ya fuera suya
-    // (p. ej. la devolvió a pendiente y la retoma).
-    if (current.assigneeId !== userId) await this.countTaken(task.projectId, userId, 1);
-    return { ...current, status: "doing" as const, assigneeId: userId };
+    return this.take(task, userId, "Esta tarea ya fue reservada por otra persona.");
+  }
+
+  async assignTask({ task, assigneeId, requestedBy }: { task: ProjectTask; assigneeId: string; requestedBy: string }) {
+    const members = await this.guard(() => this.members.activeMembers(task.projectId));
+    const requester = members.find((m) => m.userId === requestedBy);
+    if (!requester || !isOwner(requester)) throw new TasksFailure("Solo quien creó el proyecto puede asignar tareas.");
+    if (!members.some((m) => m.userId === assigneeId)) throw new TasksFailure("Esa persona no es miembro del proyecto.");
+    return this.take(task, assigneeId, "Esta tarea ya tiene responsable.");
   }
 
   async saveTaskProgress({ task, description, subtasks }: { task: ProjectTask; description: string; subtasks: Subtask[] }) {
@@ -159,6 +158,20 @@ export class TaskRepositoryImpl implements TaskRepository {
     if (after === "done" && before !== "done") return { finished_at: this.clock().toISOString() };
     if (before === "done" && after !== "done") return { finished_at: null };
     return {};
+  }
+
+  // Deja la tarea `doing` con `userId` como responsable. Lee la tarea justo
+  // antes de escribir y, si ya es de otra persona o no está pendiente, lanza
+  // `TasksFailure(taken)`. Pasar de todo a doing no cambia las terminadas, así
+  // que el progreso sigue igual. Sí es una tarea más tomada, salvo que ya fuera
+  // suya (p. ej. la devolvió a pendiente y la retoma).
+  private async take(task: ProjectTask, userId: string, taken: string) {
+    const current = await this.freshTask(task);
+    const takenByOther = current.assigneeId !== null && current.assigneeId !== userId;
+    if (current.status !== "todo" || takenByOther) throw new TasksFailure(taken);
+    await this.guard(() => this.source.updateTask(task.id, { assignee_id: userId, status: "doing" satisfies TaskStatus }));
+    if (current.assigneeId !== userId) await this.countTaken(task.projectId, userId, 1);
+    return { ...current, status: "doing" as const, assigneeId: userId };
   }
 
   // La tarea como está ahora en la base, no como la tenga quien llama.

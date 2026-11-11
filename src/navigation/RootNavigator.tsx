@@ -22,6 +22,7 @@ import ProjectsScreen from "../features/projects/presentation/screens/ProjectsSc
 import ApplicantDetailScreen from "../features/requests/presentation/screens/ApplicantDetailScreen";
 import CollaborationRequestsScreen from "../features/requests/presentation/screens/CollaborationRequestsScreen";
 import RequestDecisionScreen from "../features/requests/presentation/screens/RequestDecisionScreen";
+import AssignmentsScreen from "../features/tasks/presentation/screens/AssignmentsScreen";
 import TaskBoardScreen from "../features/tasks/presentation/screens/TaskBoardScreen";
 import TaskDetailScreen from "../features/tasks/presentation/screens/TaskDetailScreen";
 import TrustIndicatorsScreen from "../features/trust/presentation/screens/TrustIndicatorsScreen";
@@ -103,6 +104,7 @@ export default function RootNavigator() {
       {/* D · tasks */}
       <Stack.Screen name="ProjectMembers" component={ProjectMembersScreen} options={{ title: "Miembros" }} />
       <Stack.Screen name="TaskBoard"component={TaskBoardScreen} options={{ title: "Tareas" }} />
+      <Stack.Screen name="ProjectAssignments" component={AssignmentsScreen} options={{ title: "Asignaciones" }} />
       <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: "Tarea" }} />
     </Stack.Navigator>
   );

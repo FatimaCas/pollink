@@ -119,6 +119,14 @@ export default function ProjectInfoScreen() {
           onPress={() => navigation.navigate("TaskBoard", { projectId })}
           testID={ProjectInfoScreen.tasksKey}
         />
+        <List.Item
+          title="Asignaciones"
+          description="Quién tiene qué tarea"
+          left={(props) => <List.Icon {...props} icon="clipboard-account-outline" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate("ProjectAssignments", { projectId })}
+          testID={ProjectInfoScreen.assignmentsKey}
+        />
         {vm.isOwner ? (
           <List.Item
             title="Solicitudes"
@@ -263,6 +271,7 @@ ProjectInfoScreen.statusKey = "projectInfo.status";
 ProjectInfoScreen.tasksSummaryKey = "projectInfo.tasksSummary";
 ProjectInfoScreen.membersKey = "projectInfo.members";
 ProjectInfoScreen.tasksKey = "projectInfo.tasks";
+ProjectInfoScreen.assignmentsKey = "projectInfo.assignments";
 ProjectInfoScreen.requestsKey = "projectInfo.requests";
 ProjectInfoScreen.requestsBadgeKey = "projectInfo.requestsBadge";
 ProjectInfoScreen.readOnlyKey = "projectInfo.readOnly";
