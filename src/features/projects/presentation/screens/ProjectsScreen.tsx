@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import { Badge, Button, List, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BrandHeader } from "@/src/core/components/BrandHeader";
@@ -77,13 +77,39 @@ export default function ProjectsScreen() {
         refreshing={false}
         onRefresh={vm.reload}
         ListHeaderComponent={
-          section === "mine" && projects.length > 0 ? (
-            <View style={styles.header}>
-              <Button mode="contained" icon="plus" compact onPress={create} testID={ProjectsScreen.createKey}>
-                Nuevo proyecto
-              </Button>
-            </View>
-          ) : null
+          section === "mine" ? (
+            projects.length > 0 ? (
+              <View style={styles.header}>
+                <Button mode="contained" icon="plus" compact onPress={create} testID={ProjectsScreen.createKey}>
+                  Nuevo proyecto
+                </Button>
+              </View>
+            ) : null
+          ) : (
+            // Las invitaciones (C6) viven aquí: aceptarlas suma a «Otros proyectos».
+            <List.Item
+              title="Invitaciones"
+              description={
+                vm.invitationCount === 0
+                  ? "No tienes invitaciones pendientes"
+                  : `${vm.invitationCount} ${vm.invitationCount === 1 ? "invitación pendiente" : "invitaciones pendientes"}`
+              }
+              left={(props) => <List.Icon {...props} icon="email-outline" />}
+              right={(props) => (
+                <View style={styles.badgeRow}>
+                  {vm.invitationCount > 0 ? (
+                    <Badge style={{ backgroundColor: theme.colors.primary, color: theme.colors.onPrimary }} testID={ProjectsScreen.invitationsBadgeKey}>
+                      {vm.invitationCount}
+                    </Badge>
+                  ) : null}
+                  <List.Icon {...props} icon="chevron-right" />
+                </View>
+              )}
+              onPress={() => navigation.navigate("Invitations")}
+              style={styles.invitations}
+              testID={ProjectsScreen.invitationsKey}
+            />
+          )
         }
         ListEmptyComponent={
           section === "mine" ? (
@@ -135,6 +161,8 @@ ProjectsScreen.signInKey = "projects.signIn";
 ProjectsScreen.createKey = "projects.create";
 ProjectsScreen.createFirstKey = "projects.createFirst";
 ProjectsScreen.exploreKey = "projects.explore";
+ProjectsScreen.invitationsKey = "projects.invitations";
+ProjectsScreen.invitationsBadgeKey = "projects.invitationsBadge";
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -142,4 +170,6 @@ const styles = StyleSheet.create({
   loading: { marginTop: spacing.xl },
   list: { flexGrow: 1, paddingTop: spacing.sm, paddingBottom: spacing.xl },
   header: { alignItems: "flex-end", paddingHorizontal: spacing.gutter, paddingBottom: spacing.sm },
+  invitations: { marginHorizontal: spacing.gutter - spacing.md, marginBottom: spacing.sm },
+  badgeRow: { flexDirection: "row", alignItems: "center" },
 });
