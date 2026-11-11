@@ -143,7 +143,7 @@ código HTTP.
 ## Pruebas
 
 Ninguna prueba habla con Roble: todas usan falsos o datasources en memoria, y
-`__tests__/unit/sinRoble.test.ts` lo hace cumplir.
+`__tests__/unit/core/sinRoble.test.ts` lo hace cumplir.
 
 | Carpeta | Qué prueba | Comando |
 |---|---|---|

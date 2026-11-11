@@ -7,14 +7,14 @@ import { emptyProfile } from "@/src/features/profile/domain/entities/UserProfile
 import { ProfileUpdate } from "@/src/features/profile/domain/entities/ProfileUpdate";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import OnboardingScreen from "@/src/features/profile/presentation/screens/OnboardingScreen";
-import { fake } from "../support/fake";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { renderScreen } from "../../support/renderScreen";
 
 const mockGoBack = jest.fn();
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession(),
+  useSession: () => require("../../support/sessionMock").fakeSession(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock("@react-navigation/native", () => ({

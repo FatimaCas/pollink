@@ -7,9 +7,9 @@ import { DiscoverRepository } from "@/src/features/discover/domain/repositories/
 import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
 import ProjectsScreen from "@/src/features/projects/presentation/screens/ProjectsScreen";
-import { fake } from "../support/fake";
-import { ownProject } from "../support/projectFixtures";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { ownProject } from "../../support/projectFixtures";
+import { renderScreen } from "../../support/renderScreen";
 
 const mockNavigate = jest.fn();
 const mockSignIn = jest.fn(() => false);
@@ -17,7 +17,7 @@ let mockSessionOver: Record<string, unknown> = {};
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession({ ensureLoggedIn: mockSignIn, ...mockSessionOver }),
+  useSession: () => require("../../support/sessionMock").fakeSession({ ensureLoggedIn: mockSignIn, ...mockSessionOver }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock("@react-navigation/native", () => ({

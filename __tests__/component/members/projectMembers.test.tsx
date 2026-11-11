@@ -8,8 +8,8 @@ import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRep
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import ProjectMembersScreen from "@/src/features/members/presentation/screens/ProjectMembersScreen";
-import { fake } from "../support/fake";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { renderScreen } from "../../support/renderScreen";
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

@@ -5,14 +5,14 @@ import { DummyData } from "@/src/core/data/dummyData";
 import { createLocalContainer } from "@/src/core/di/localContainer";
 import { TABLES } from "@/src/core/roble/tables";
 import InvitationsScreen from "@/src/features/invitations/presentation/screens/InvitationsScreen";
-import { renderScreen } from "../support/renderScreen";
+import { renderScreen } from "../../support/renderScreen";
 
 // Contra el contenedor en memoria con los proyectos de demo de A: p_1 (de Ana,
 // abierto) y p_3 (de Carla, cerrado). Beto es quien recibe las invitaciones.
 const beto = { userId: "u_beto", name: "Beto", email: "beto@demo.com", isAnonymous: false };
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession({ user: beto, currentUser: () => beto }),
+  useSession: () => require("../../support/sessionMock").fakeSession({ user: beto, currentUser: () => beto }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
