@@ -11,3 +11,9 @@ export function goToLogin() {
   const current = navigationRef.getCurrentRoute()?.name;
   if (current !== "Login" && current !== "Register") navigationRef.navigate("Login");
 }
+
+// Tras crear la cuenta o guardar la de invitado: los primeros datos del perfil
+// (se pueden omitir). Es de `profile`; auth solo lo dispara.
+export function goToOnboarding() {
+  if (navigationRef.isReady()) navigationRef.navigate("Onboarding");
+}

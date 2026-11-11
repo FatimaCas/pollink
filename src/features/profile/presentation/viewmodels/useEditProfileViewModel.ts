@@ -80,9 +80,13 @@ export function useEditProfileViewModel() {
     }
   };
 
+  // Nada escrito: guardar sería lo mismo que omitir (el onboarding lo usa).
+  const isEmpty = [program, institution, bio].every((t) => t.trim() === "") && skills.length === 0;
+
   return {
     loading,
     loadError,
+    isEmpty,
     reload,
     program,
     setProgram,
