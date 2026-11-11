@@ -25,7 +25,7 @@ const draftOf = (project: Project): ProjectDraft => ({
 
 // La ficha de un proyecto (C4): «Progreso» e «Info. básica». La info básica es
 // un borrador que solo el creador edita y guarda de una vez, mientras el
-// proyecto siga abierto.
+// proyecto siga abierto. El creador también lo cierra desde aquí (C5).
 export function useProjectInfoViewModel(projectId: string) {
   const projects = useInject<ProjectRepository>(TOKENS.ProjectRepo);
   const requests = useInject<JoinRequestRepository>(TOKENS.JoinRequestRepo);
@@ -40,6 +40,7 @@ export function useProjectInfoViewModel(projectId: string) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
 
   const [version, setVersion] = useState(0);
   const reload = useCallback(() => setVersion((v) => v + 1), []);
@@ -126,9 +127,32 @@ export function useProjectInfoViewModel(projectId: string) {
     }
   };
 
+  // Cierra el proyecto (C5): irreversible, solo el creador y solo si sigue
+  // abierto. Quienes ya colaboran siguen en él. `true` si quedó cerrado.
+  const close = async () => {
+    if (!project || !isOwner || !isOpen(project) || closing) return false;
+    setClosing(true);
+    try {
+      const closed = await projects.closeProject(projectId);
+      setProject(closed);
+      setDraft(draftOf(closed));
+      setSaveError(null);
+      show(`«${closed.title}» ya no recibe solicitudes ni invitaciones.`);
+      return true;
+    } catch (e) {
+      show(`No se pudo cerrar el proyecto. ${messageOf(e)}`, { error: true });
+      return false;
+    } finally {
+      setClosing(false);
+    }
+  };
+
   return {
     project,
     pendingRequests,
+    canClose: isOwner && project !== null && isOpen(project),
+    closing,
+    close,
     loading,
     error,
     reload,

@@ -12,7 +12,10 @@ import { radius, spacing } from "@/src/theme/tokens";
 import { isOpen, PROJECT_LIMITS } from "../../domain/entities/Project";
 import { ChipListField } from "../components/ChipListField";
 import { ClosedProjectBanner } from "../components/ClosedProjectBanner";
+import { CloseProjectDialog } from "../components/CloseProjectDialog";
 import { LabelChips } from "../components/LabelChips";
+import { ProjectActionsMenu } from "../components/ProjectActionsMenu";
+import { ProjectStatusLabel } from "../components/ProjectStatusLabel";
 import { useProjectInfoViewModel } from "../viewmodels/useProjectInfoViewModel";
 
 type Tab = "progress" | "info";
@@ -24,7 +27,8 @@ const TABS: { value: Tab; label: string }[] = [
 
 // La ficha de un proyecto (C4), para su creador y sus miembros. «Progreso»:
 // avance de las tareas y la entrada a Miembros y Tareas (D) y, para el
-// creador, a Solicitudes (A). «Info. básica»: la edita el creador.
+// creador, a Solicitudes (A). «Info. básica»: la edita el creador. El ⋮ del
+// creador cierra el proyecto (C5).
 export default function ProjectInfoScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -32,12 +36,25 @@ export default function ProjectInfoScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, "ProjectInfo">>();
   const vm = useProjectInfoViewModel(params.projectId);
   const [tab, setTab] = useState<Tab>("progress");
-  const { reload, project } = vm;
+  const [confirmingClose, setConfirmingClose] = useState(false);
+  const { reload, project, canClose } = vm;
   const title = project?.title ?? "";
 
   // Al volver de Tareas o Solicitudes cambian el avance y los integrantes.
   useEffect(() => navigation.addListener("focus", reload), [navigation, reload]);
-  useLayoutEffect(() => navigation.setOptions({ title }), [navigation, title]);
+  // El ⋮ del creador (cerrar) va en el header mientras el proyecto siga abierto.
+  useLayoutEffect(
+    () =>
+      navigation.setOptions({
+        title,
+        headerRight: canClose ? () => <ProjectActionsMenu onCloseProject={() => setConfirmingClose(true)} /> : undefined,
+      }),
+    [navigation, title, canClose],
+  );
+
+  const confirmClose = async () => {
+    if (await vm.close()) setConfirmingClose(false);
+  };
 
   if (vm.loading) return <ActivityIndicator style={styles.loading} testID={ProjectInfoScreen.loadingKey} />;
   if (vm.error || !project) {
@@ -62,9 +79,12 @@ export default function ProjectInfoScreen() {
   const progressTab = (
     <>
       <View style={[styles.card, { backgroundColor: theme.colors.primaryContainer }]}>
-        <Text variant="titleMedium" style={styles.bold}>
-          Progreso general
-        </Text>
+        <View style={styles.cardHeader}>
+          <Text variant="titleMedium" style={styles.bold}>
+            Progreso general
+          </Text>
+          <ProjectStatusLabel status={project.status} testID={ProjectInfoScreen.statusKey} />
+        </View>
         <View style={styles.progressRow}>
           <ProgressBar
             progress={project.progress / 100}
@@ -213,6 +233,13 @@ export default function ProjectInfoScreen() {
         <SegmentedTabs options={TABS} selected={tab} onSelect={setTab} testID={ProjectInfoScreen.tabsKey} />
         {tab === "progress" ? progressTab : vm.canEdit ? editableInfo : readOnlyInfo}
       </ScrollView>
+      <CloseProjectDialog
+        visible={confirmingClose}
+        projectTitle={project.title}
+        closing={vm.closing}
+        onConfirm={confirmClose}
+        onDismiss={() => setConfirmingClose(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -232,6 +259,7 @@ ProjectInfoScreen.loadingKey = "projectInfo.loading";
 ProjectInfoScreen.retryKey = "projectInfo.retry";
 ProjectInfoScreen.tabsKey = "projectInfo.tabs";
 ProjectInfoScreen.percentKey = "projectInfo.percent";
+ProjectInfoScreen.statusKey = "projectInfo.status";
 ProjectInfoScreen.tasksSummaryKey = "projectInfo.tasksSummary";
 ProjectInfoScreen.membersKey = "projectInfo.members";
 ProjectInfoScreen.tasksKey = "projectInfo.tasks";
@@ -252,6 +280,7 @@ const styles = StyleSheet.create({
   content: { padding: spacing.gutter, gap: spacing.lg },
   bold: { fontWeight: "700" },
   card: { borderRadius: radius.md * 2, padding: spacing.lg, gap: spacing.sm },
+  cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   progressRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   progress: { flex: 1, height: 14, borderRadius: radius.sm },
   links: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, overflow: "hidden" },
