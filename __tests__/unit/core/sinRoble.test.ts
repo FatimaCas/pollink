@@ -27,7 +27,7 @@ function testFiles(dir: string): string[] {
 }
 
 test("ninguna prueba usa el servidor de Roble", () => {
-  const files = testFiles(path.join(__dirname, ".."))
+  const files = testFiles(path.join(__dirname, "../.."))
     // Este archivo nombra lo prohibido para poder buscarlo.
     .filter((f) => !f.endsWith("sinRoble.test.ts"));
 

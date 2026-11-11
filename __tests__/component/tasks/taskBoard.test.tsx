@@ -8,8 +8,8 @@ import { ProjectTask } from "@/src/features/tasks/domain/entities/ProjectTask";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { TasksFailure } from "@/src/features/tasks/domain/TasksFailure";
 import TaskBoardScreen from "@/src/features/tasks/presentation/screens/TaskBoardScreen";
-import { fake } from "../support/fake";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { renderScreen } from "../../support/renderScreen";
 
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),

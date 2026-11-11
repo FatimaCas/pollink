@@ -11,17 +11,17 @@ import PersonProfileScreen from "@/src/features/profile/presentation/screens/Per
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
 import { NO_TRUST } from "@/src/features/trust/domain/entities/TrustMetrics";
 import { TrustRepository } from "@/src/features/trust/domain/repositories/TrustRepository";
-import { fake } from "../support/fake";
-import { profile } from "../support/profileFixtures";
-import { ownProject } from "../support/projectFixtures";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { profile } from "../../support/profileFixtures";
+import { ownProject } from "../../support/projectFixtures";
+import { renderScreen } from "../../support/renderScreen";
 
 const mockNavigate = jest.fn();
 let mockParams: Record<string, unknown> = { userId: "u9" };
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession(),
+  useSession: () => require("../../support/sessionMock").fakeSession(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock("@react-navigation/native", () => ({

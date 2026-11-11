@@ -4,7 +4,7 @@ import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { DayPickerModal } from "@/src/core/components/DayPickerModal";
-import { safeAreaMetrics } from "../support/renderScreen";
+import { safeAreaMetrics } from "../../support/renderScreen";
 
 // Humo del selector real: se abre en español, con el tema de Paper, y sin romper
 // con una fecha inicial anterior al mínimo.

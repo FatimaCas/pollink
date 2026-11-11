@@ -11,14 +11,14 @@ import { TrustIndicators } from "@/src/features/trust/presentation/components/Tr
 import { TrustPill } from "@/src/features/trust/presentation/components/TrustPill";
 import { useTrustMetrics } from "@/src/features/trust/presentation/hooks/useTrustMetrics";
 import TrustIndicatorsScreen from "@/src/features/trust/presentation/screens/TrustIndicatorsScreen";
-import { fake } from "../support/fake";
-import { renderScreen } from "../support/renderScreen";
+import { fake } from "../../support/fake";
+import { renderScreen } from "../../support/renderScreen";
 
 let mockParams: { userId: string } = { userId: "u2" };
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession(),
+  useSession: () => require("../../support/sessionMock").fakeSession(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock("@react-navigation/native", () => ({

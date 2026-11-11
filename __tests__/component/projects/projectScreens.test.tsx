@@ -8,14 +8,14 @@ import ProjectDetailScreen from "@/src/features/projects/presentation/screens/Pr
 import { CloseProjectDialog } from "@/src/features/projects/presentation/components/CloseProjectDialog";
 import { ProjectActionsMenu } from "@/src/features/projects/presentation/components/ProjectActionsMenu";
 import ProjectInfoScreen from "@/src/features/projects/presentation/screens/ProjectInfoScreen";
-import { renderScreen } from "../support/renderScreen";
+import { renderScreen } from "../../support/renderScreen";
 
 // Contra el contenedor en memoria, con los proyectos de demo que siembra
 // `registerDiscoverLocal`: p_1 (de Ana, abierto), p_2 (de Beto), p_3 (de Carla, cerrado).
 let mockUser = { userId: "u_beto", name: "Beto", email: "beto@demo.com", isAnonymous: false };
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSession: () => require("../support/sessionMock").fakeSession({ user: mockUser, currentUser: () => mockUser }),
+  useSession: () => require("../../support/sessionMock").fakeSession({ user: mockUser, currentUser: () => mockUser }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 

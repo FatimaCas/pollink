@@ -4,8 +4,8 @@ import { DummyData } from "@/src/core/data/dummyData";
 import { createLocalContainer } from "@/src/core/di/localContainer";
 import { TABLES } from "@/src/core/roble/tables";
 import CreateProjectScreen from "@/src/features/projects/presentation/screens/CreateProjectScreen";
-import { renderScreen } from "../support/renderScreen";
-import { fakeSession } from "../support/sessionMock";
+import { renderScreen } from "../../support/renderScreen";
+import { fakeSession } from "../../support/sessionMock";
 
 let mockSession = fakeSession({ currentUser: () => ({ userId: "u_ana", name: "Ana", email: "ana@demo.com", isAnonymous: false }) });
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
