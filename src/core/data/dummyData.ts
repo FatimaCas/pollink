@@ -39,7 +39,13 @@ export class DummyData {
 
   // Latencia simulada, para que los estados de carga se vean. Las pruebas la
   // bajan: en Jest los relojes son de verdad.
-  readonly latencyMs: number;
+  private latency: number;
+  get latencyMs() {
+    return this.latency;
+  }
+  setLatency(ms: number) {
+    this.latency = ms;
+  }
 
   // Arranca por encima de los ids sembrados a mano: si volviera a emitirlos,
   // una fila nueva pisaría una de prueba.
@@ -50,7 +56,7 @@ export class DummyData {
   }
 
   constructor({ latencyMs = 300 }: { latencyMs?: number } = {}) {
-    this.latencyMs = latencyMs;
+    this.latency = latencyMs;
     this.seed();
   }
 
