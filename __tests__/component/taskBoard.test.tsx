@@ -3,6 +3,7 @@ import React from "react";
 
 import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
+import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { ProjectTask } from "@/src/features/tasks/domain/entities/ProjectTask";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { TasksFailure } from "@/src/features/tasks/domain/TasksFailure";
@@ -51,6 +52,7 @@ const task = (over: Partial<ProjectTask>): ProjectTask => ({
 
 function setup(repo: Partial<TaskRepository>) {
   const c = new Container();
+  c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => ({}) }, "ProfileRepo"));
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(repo, "TaskRepo"));
   return renderScreen(TaskBoardScreen, c);
 }
@@ -63,7 +65,7 @@ test("reparte las tareas por columna", async () => {
   expect(screen.queryByTestId("taskCard.b")).toBeNull();
   fireEvent.press(screen.getByTestId("taskBoard.tabs.doing"));
   expect(screen.getByTestId("taskCard.b")).toBeTruthy();
-  expect(screen.getByText("Reservada por Tú")).toBeTruthy();
+  expect(screen.getByText("Reservada por ti")).toBeTruthy();
   fireEvent.press(screen.getByTestId("taskBoard.tabs.done"));
   expect(screen.getByTestId("taskCard.c")).toBeTruthy();
 });
@@ -76,7 +78,7 @@ test("reservar mueve la tarea a «en progreso»", async () => {
     expect(reserveTask).toHaveBeenCalledWith({ task: expect.objectContaining({ id: "a" }), userId: "u1" }),
   );
   fireEvent.press(screen.getByTestId("taskBoard.tabs.doing"));
-  expect(await screen.findByText("Reservada por Tú")).toBeTruthy();
+  expect(await screen.findByText("Reservada por ti")).toBeTruthy();
   fireEvent.press(screen.getByTestId("taskBoard.tabs.todo"));
   expect(screen.queryByTestId("taskCard.a")).toBeNull();
 });

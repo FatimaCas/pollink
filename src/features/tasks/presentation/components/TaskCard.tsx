@@ -4,14 +4,15 @@ import { StyleSheet, View } from "react-native";
 import { Button, ProgressBar, Surface, Text, TouchableRipple, useTheme } from "react-native-paper";
 
 import { systemClock } from "@/src/core/utils/clock";
+import { usePersonName } from "@/src/features/profile/presentation/hooks/usePersonName";
 import { radius, spacing } from "@/src/theme/tokens";
 import { checklistProgress, isDone, isOverdueAt, ProjectTask } from "../../domain/entities/ProjectTask";
 import { TaskDeadline } from "../../domain/entities/TaskDeadline";
 
 // Una tarea en el tablero (como la tarjeta de Imker): título centrado, barra del
 // checklist, fecha límite («Vence el…», «Vencida el…» en rojo), «Reservada por»
-// y, si está libre, «Reservar tarea». Los nombres vienen del directorio de B;
-// mientras no esté, solo se distingue «Tú» de «Otra persona».
+// y, si está libre, «Reservar tarea». El nombre viene del directorio de B
+// («ti» si es uno mismo; «Otra persona» mientras llega).
 export function TaskCard({
   task,
   currentUserId,
@@ -33,6 +34,7 @@ export function TaskCard({
   const overdue = isOverdueAt(task, now());
   const color = overdue ? theme.colors.error : theme.colors.onSurfaceVariant;
   const day = task.deadline ? TaskDeadline.formatDay(task.deadline) : "";
+  const assigneeName = usePersonName(task.assigneeId ?? "");
 
   return (
     <Surface elevation={1} style={[styles.card, { backgroundColor: theme.colors.surface }]} testID={testID}>
@@ -54,7 +56,7 @@ export function TaskCard({
           ) : null}
           {task.assigneeId ? (
             <Text variant="bodySmall" style={[styles.centered, { color: theme.colors.onSurfaceVariant }]}>
-              Reservada por {task.assigneeId === currentUserId ? "Tú" : "Otra persona"}
+              Reservada por {task.assigneeId === currentUserId ? "ti" : assigneeName}
             </Text>
           ) : null}
         </View>
