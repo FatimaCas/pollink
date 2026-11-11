@@ -29,7 +29,7 @@ export interface ProjectRepository {
   getProjectsOfPerson(userId: string): Promise<Project[]>;
 
   // Todos aquellos en los que tuvo alguna estancia, en cualquier estado y como
-  // creadora o colaboradora: su historial (B7). Usa `proyectos_de_usuario`.
+  // creadora o colaboradora: su historial (B7). Los creados primero.
   getProjectsParticipatedBy(userId: string): Promise<Project[]>;
 
   // Crea el proyecto abierto, con `ownerId` como dueño, progreso 0 y sin
