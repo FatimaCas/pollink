@@ -8,7 +8,7 @@ import { MembersRepository } from "@/src/features/members/domain/repositories/Me
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { ProjectTask } from "@/src/features/tasks/domain/entities/ProjectTask";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
-import AssignmentsScreen from "@/src/features/tasks/presentation/screens/AssignmentsScreen";
+import { AssignmentsTab } from "@/src/features/tasks/presentation/screens/AssignmentsScreen";
 import { fake } from "../../support/fake";
 import { renderScreen } from "../../support/renderScreen";
 
@@ -49,7 +49,7 @@ function setup(tasks: Partial<TaskRepository>, memberList = members) {
   c.register(TOKENS.MembersRepo, fake<MembersRepository>({ activeMembers: async () => memberList }, "MembersRepo"));
   c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => ({ u1: "Ana Torres", u2: "Beto Ruiz" }) }, "ProfileRepo"));
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(tasks, "TaskRepo"));
-  return renderScreen(AssignmentsScreen, c);
+  return renderScreen(() => <AssignmentsTab projectId="p1" />, c);
 }
 
 async function confirmAlert(label: string) {

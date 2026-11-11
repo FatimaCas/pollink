@@ -7,7 +7,7 @@ import { ProfileRepository } from "@/src/features/profile/domain/repositories/Pr
 import { ProjectTask } from "@/src/features/tasks/domain/entities/ProjectTask";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { TasksFailure } from "@/src/features/tasks/domain/TasksFailure";
-import TaskBoardScreen from "@/src/features/tasks/presentation/screens/TaskBoardScreen";
+import { TaskBoardTab } from "@/src/features/tasks/presentation/screens/TaskBoardScreen";
 import { fake } from "../../support/fake";
 import { renderScreen } from "../../support/renderScreen";
 
@@ -54,7 +54,7 @@ function setup(repo: Partial<TaskRepository>) {
   const c = new Container();
   c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => ({}) }, "ProfileRepo"));
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(repo, "TaskRepo"));
-  return renderScreen(TaskBoardScreen, c);
+  return renderScreen(() => <TaskBoardTab projectId="p1" />, c);
 }
 
 test("reparte las tareas por columna", async () => {

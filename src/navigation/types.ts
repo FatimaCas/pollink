@@ -13,6 +13,8 @@ export type TabParamList = {
 };
 
 // Pantallas del stack raíz.
+export type ProjectWorkspaceTab = "members" | "tasks" | "assignments";
+
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<TabParamList>;
 
@@ -43,9 +45,7 @@ export type RootStackParamList = {
   Invitations: undefined;
 
   // D · members y tasks
-  ProjectMembers: { projectId: string };
-  TaskBoard: { projectId: string };
-  ProjectAssignments: { projectId: string };
+  ProjectWorkspace: { projectId: string; tab: ProjectWorkspaceTab };
   TaskDetail: { projectId: string; taskId: string };
 };
 

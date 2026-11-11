@@ -108,7 +108,7 @@ export default function ProjectInfoScreen() {
           description={`${project.memberCount} ${project.memberCount === 1 ? "integrante" : "integrantes"}`}
           left={(props) => <List.Icon {...props} icon="account-group-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => navigation.navigate("ProjectMembers", { projectId })}
+          onPress={() => navigation.navigate("ProjectWorkspace", { projectId, tab: "members" })}
           testID={ProjectInfoScreen.membersKey}
         />
         <List.Item
@@ -116,7 +116,7 @@ export default function ProjectInfoScreen() {
           description="Tablero de pendientes, en progreso y terminadas"
           left={(props) => <List.Icon {...props} icon="checkbox-marked-circle-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => navigation.navigate("TaskBoard", { projectId })}
+          onPress={() => navigation.navigate("ProjectWorkspace", { projectId, tab: "tasks" })}
           testID={ProjectInfoScreen.tasksKey}
         />
         <List.Item
@@ -124,7 +124,7 @@ export default function ProjectInfoScreen() {
           description="Quién tiene qué tarea"
           left={(props) => <List.Icon {...props} icon="clipboard-account-outline" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => navigation.navigate("ProjectAssignments", { projectId })}
+          onPress={() => navigation.navigate("ProjectWorkspace", { projectId, tab: "assignments" })}
           testID={ProjectInfoScreen.assignmentsKey}
         />
         {vm.isOwner ? (
