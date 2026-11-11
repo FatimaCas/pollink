@@ -1,62 +1,282 @@
 {
   "tables": [
     {
-      "table": "listing",
+      "table": "profile",
       "uses": [
         "create",
         "read",
         "update"
       ],
-      "public": true,
       "owns": true,
       "columns": [
         {
-          "name": "seller_id",
+          "name": "name",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "career",
+          "type": "jsonb",
+          "nullable": false
+        },
+        {
+          "name": "skills",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "profilePicture",
+          "type": "varchar",
+          "nullable": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "project",
+      "uses": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "execute"
+      ],
+      "public": true,
+      "columns": [
+        {
+          "name": "title",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "imageUrl",
+          "type": "varchar",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "jobs",
+          "type": "jsonb",
+          "nullable": false
+        },
+        {
+          "name": "skills",
+          "type": "jsonb",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "total_tasks",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "progress",
+          "type": "double precision",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "project_saved",
+      "uses": [
+        "create",
+        "read",
+        "delete"
+      ],
+      "owns": true,
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "primary": true
+        },
+        {
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false,
+          "primary": true
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "table": "project_join_request",
+      "uses": [
+        "create",
+        "read",
+        "update"
+      ],
+      "columns": [
+        {
+          "name": "user_id",
           "type": "uuid",
           "nullable": false
         },
         {
-          "name": "seller_name",
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "jsonb",
+          "nullable": false
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "reviewed_by",
+          "type": "uuid",
+          "nullable": true
+        },
+        {
+          "name": "reviewNote",
+          "type": "text",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "project_member",
+      "uses": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "execute"
+      ],
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "role",
+          "type": "jsonb",
+          "nullable": false
+        },
+        {
+          "name": "status",
           "type": "text",
           "nullable": false
         },
         {
-          "name": "brand",
-          "type": "text",
+          "name": "joinedAt",
+          "type": "timestamp with time zone",
           "nullable": false
         },
         {
-          "name": "model",
-          "type": "text",
-          "nullable": false
+          "name": "leftAt",
+          "type": "timestamp with time zone",
+          "nullable": true
         },
         {
-          "name": "year",
+          "name": "tasks_finished",
           "type": "int",
           "nullable": false
         },
         {
-          "name": "price",
-          "type": "numeric",
-          "nullable": false
-        },
-        {
-          "name": "mileage_km",
+          "name": "tasks_taken",
           "type": "int",
           "nullable": false
+        }
+      ]
+    },
+    {
+      "table": "project_invitation",
+      "uses": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ],
+      "columns": [
+        {
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false
         },
         {
-          "name": "fuel",
+          "name": "email",
           "type": "text",
           "nullable": false
         },
         {
-          "name": "transmission",
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "status",
           "type": "text",
           "nullable": false
         },
         {
-          "name": "city",
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "respondedAt",
+          "type": "timestamp with time zone",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "table": "task",
+      "uses": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "execute"
+      ],
+      "columns": [
+        {
+          "name": "project_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "title",
           "type": "text",
           "nullable": false
         },
@@ -66,307 +286,61 @@
           "nullable": true
         },
         {
-          "name": "image_1",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "image_2",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "image_3",
-          "type": "text",
-          "nullable": true
-        },
-        {
           "name": "status",
           "type": "text",
           "nullable": false
         },
         {
-          "name": "created_at",
+          "name": "deadline",
           "type": "timestamp with time zone",
-          "nullable": false
+          "nullable": true
         },
         {
-          "name": "buyer_id",
+          "name": "finished_at",
+          "type": "timestamp with time zone",
+          "nullable": true
+        },
+        {
+          "name": "assignee_id",
           "type": "uuid",
           "nullable": true
         },
         {
-          "name": "buyer_name",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "sold_at",
-          "type": "timestamp with time zone",
+          "name": "checklist",
+          "type": "jsonb",
           "nullable": true
         }
       ]
     },
     {
-      "table": "listing_question",
+      "table": "contribution",
       "uses": [
         "create",
-        "read",
-        "update"
+        "read"
       ],
-      "public": true,
       "columns": [
-        {
-          "name": "listing_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "asker_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "asker_name",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "body",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "nullable": false
-        },
-        {
-          "name": "answer_body",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "answer_by",
-          "type": "uuid",
-          "nullable": true
-        },
-        {
-          "name": "answer_by_name",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "answered_at",
-          "type": "timestamp with time zone",
-          "nullable": true
-        }
-      ]
-    },
-    {
-      "table": "listing_follow",
-      "uses": [
-        "create",
-        "read",
-        "delete"
-      ],
-      "owns": true,
-      "columns": [
-        {
-          "name": "listing_id",
-          "type": "uuid",
-          "nullable": false
-        },
         {
           "name": "user_id",
           "type": "uuid",
           "nullable": false
         },
         {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "nullable": false
-        }
-      ]
-    },
-    {
-      "table": "chat_thread",
-      "uses": [
-        "create",
-        "read",
-        "update"
-      ],
-      "columns": [
-        {
-          "name": "listing_id",
+          "name": "project_id",
           "type": "uuid",
           "nullable": false
         },
         {
-          "name": "listing_title",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "listing_cover",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "buyer_id",
+          "name": "task_id",
           "type": "uuid",
           "nullable": false
         },
         {
-          "name": "buyer_name",
+          "name": "description",
           "type": "text",
           "nullable": false
         },
         {
-          "name": "seller_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "seller_name",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "nullable": false
-        },
-        {
-          "name": "last_message",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "last_message_at",
-          "type": "timestamp with time zone",
-          "nullable": true
-        },
-        {
-          "name": "buyer_muted",
-          "type": "boolean",
-          "nullable": false
-        },
-        {
-          "name": "seller_muted",
-          "type": "boolean",
-          "nullable": false
-        },
-        {
-          "name": "buyer_unread",
-          "type": "int",
-          "nullable": true
-        },
-        {
-          "name": "seller_unread",
-          "type": "int",
-          "nullable": true
-        }
-      ]
-    },
-    {
-      "table": "car_brand",
-      "uses": [
-        "read"
-      ],
-      "public": true,
-      "columns": [
-        {
-          "name": "name",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "sort_order",
-          "type": "int",
-          "nullable": true
-        },
-        {
-          "name": "active",
-          "type": "boolean",
-          "nullable": true
-        }
-      ]
-    },
-    {
-      "table": "car_model",
-      "uses": [
-        "read"
-      ],
-      "public": true,
-      "columns": [
-        {
-          "name": "brand_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "name",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "sort_order",
-          "type": "int",
-          "nullable": true
-        },
-        {
-          "name": "active",
-          "type": "boolean",
-          "nullable": true
-        }
-      ]
-    },
-    {
-      "table": "user_rating",
-      "uses": [
-        "create",
-        "read"
-      ],
-      "public": true,
-      "columns": [
-        {
-          "name": "listing_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "rater_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "rater_name",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "rated_id",
-          "type": "uuid",
-          "nullable": false
-        },
-        {
-          "name": "rated_role",
-          "type": "text",
-          "nullable": false
-        },
-        {
-          "name": "stars",
-          "type": "int",
-          "nullable": false
-        },
-        {
-          "name": "comment",
-          "type": "text",
-          "nullable": true
-        },
-        {
-          "name": "created_at",
+          "name": "createdAt",
           "type": "timestamp with time zone",
           "nullable": false
         }

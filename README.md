@@ -9,19 +9,14 @@ App móvil en React Native (Expo) con [Roble](https://roble-api.test-openlab.uni
 
 ## Estado actual
 
-Pollink parte del código de r_market, un mercado de carros usados. Hoy la app
-hace lo mismo que r_market:
+Pollink parte de la base técnica de r_market, ya sin sus features de carros.
+Hoy tiene **autenticación** (entrar, registrarse, entrar como invitado y
+guardar la cuenta después) y el **esqueleto** de toda la app: las pestañas
+Descubrir · Proyectos · Perfil y todas las rutas, con pantallas pendientes.
 
-- **Catálogo público**, sin cuenta: búsqueda por texto y filtros. Con cuenta, la
-  búsqueda se resuelve en el servidor con una consulta guardada.
-- **Publicar**, **seguir**, **preguntar** en público y **chatear** en privado,
-  con los mensajes en tiempo real.
-- **Cerrar una venta** y **calificarse** entre las dos partes.
-- **Entrar sin cuenta** como invitado y guardar la cuenta después sin perder nada.
-- **Avisos** guardados en Roble, que llegan al momento a otros dispositivos.
-
-Lo que falta para dejarlo como Pollink está en
-[CONVENTIONS.md → Pendientes](CONVENTIONS.md#pendientes).
+Pollink va a recrear el alcance de Imker (`design-thinking/app`). El reparto
+del trabajo está en [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md), y lo
+que falta de la base en [CONVENTIONS.md → Pendientes](CONVENTIONS.md#pendientes).
 
 ## Cómo correrlo
 
@@ -85,24 +80,26 @@ contexto. El view model habla con la **interfaz** del repositorio. No hay casos
 de uso. Las reglas completas están en [CONVENTIONS.md](CONVENTIONS.md#2-arquitectura).
 
 ```
-App.tsx                 providers: DI, Paper, Snackbar, sesión, seguidos, avisos
+App.tsx                 providers: DI, Paper, Snackbar, sesión
 src/
   core/
     di/                 contenedor, TOKENS, appContainer y localContainer
-    roble/              el cliente (uno solo), la config del .env y guardRoble
+    roble/              el cliente (uno solo), la config del .env, guardRoble y tables.ts
     feedback/           la Snackbar
     data/               datos de prueba para correr sin servidor
     components/ utils/  componentes y funciones compartidas
   navigation/           stack raíz + pestañas, rutas tipadas, navigationRef
   theme/                theme de React Native Paper (claro y oscuro)
   features/
-    auth/               sesión, login, registro, invitado, guardar cuenta
-    listings/           catálogo, detalle, publicar, lo mío, seguir
-    vehicles/           marcas y modelos precargados (solo lectura)
-    qa/                 preguntas y respuestas públicas
-    chat/               chats privados
-    profiles/           perfil público, historial y calificaciones
-    notifications/      bandeja de avisos
+    auth/               sesión, login, registro, invitado, guardar cuenta   (A)
+    discover/           feed de proyectos, filtros, postularse          (A)
+    requests/           solicitudes para colaborar                      (A)
+    profile/            perfil propio y ajeno, onboarding, ajustes      (B)
+    trust/              indicadores de confianza                        (B)
+    projects/           crear, mis proyectos, ficha, cerrar             (C)
+    invitations/        invitaciones a proyectos                        (C)
+    members/            miembros, salir y quitar                        (D)
+    tasks/              tablero, checklist, fechas, comentarios         (D)
 ```
 
 Cada feature repite las mismas capas:
@@ -110,6 +107,7 @@ Cada feature repite las mismas capas:
 ```
 features/<nombre>/
   domain/          entities, repositories (interfaces) y su Failure
+  di.ts            registra sus repositorios (con Roble y en memoria)
   data/
     datasources/   interfaz + implementación con Roble (+ en memoria, opcional)
     repositories/  uno por feature: convierte filas en entidades y traduce errores

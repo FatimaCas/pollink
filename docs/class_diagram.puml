@@ -1,0 +1,189 @@
+@startuml v4
+title Pollink - UML v4
+
+hide circle
+skinparam shadowing false
+
+legend right
+Toda tabla del servicio tiene _id y _owner asignados por ROBLE.
+_owner = quién creó la fila.
+Encima de la línea "--" va la PK
+"*" = NOT NULL.
+Llaves con underscore (user_id), atributos en camelCase (createdAt).
+endlegend
+
+' ───────── Entidades ─────────
+entity user_system <<ROBLE>> {
+* id : uuid <<PK>>
+--
+* user_id : uuid
+* email : text
+* name : text
+* createdAt : timestamptz
+* updatedAt : timestamptz
+  extra : jsonb
+  metadata : jsonb
+}
+
+entity profile {
+* _id : uuid <<PK>>
+--
+  _owner : text <<FK user_system>>
+* name : text
+* career : jsonb
+  skills : jsonb
+  profilePicture : varchar
+  description : text
+}
+
+entity project {
+* _id : uuid <<PK>>
+--
+  _owner : text
+* title : text
+* imageUrl : varchar
+* description : text
+* jobs : jsonb
+* skills : jsonb
+* status : open | closed
+* total_tasks: int
+* progress: float8
+  createdAt : timestamptz
+}
+
+note bottom of project
+  Las columnas jsonb que guardan listas
+  (jobs y skills de project, skills de profile)
+  llevan el array en la raíz de la columna:
+  ["a", "b"] y nunca {"values": [...]}.
+end note
+
+entity project_saved  {
+* user_id : uuid <<PK, FK>>
+* project_id : uuid <<PK, FK>>
+--
+* createdAt : timestamptz
+}
+
+entity project_join_request {
+* _id : uuid <<PK>>
+--
+* user_id : uuid <<FK>>
+* project_id : uuid <<FK>>
+* status : json {state: pending | accepted | rejected | cancelled}
+* createdAt : timestamptz
+* updatedAt : timestamptz
+  reviewed_by : uuid <<FK user_system>>
+  reviewNote : text
+}
+
+entity project_member {
+* _id : uuid <<PK>>
+--
+* user_id : uuid <<FK>>
+* project_id : uuid <<FK>>
+* role : json {name: owner | collaborator}
+* status : active | left | removed
+* joinedAt : timestamptz
+  leftAt : timestamptz
+* tasks_finished: int
+* tasks_taken: int
+}
+
+entity project_invitation {
+* _id : uuid <<PK>>
+--
+  _owner : text
+* project_id : uuid <<FK project>>
+* email : text
+* user_id : uuid <<FK user_system>>
+* status : pending | accepted | declined | cancelled
+* createdAt : timestamptz
+  respondedAt : timestamptz
+}
+
+entity task {
+* _id : uuid <<PK>>
+--
+* project_id : uuid <<FK>>
+* title : text
+  description : text
+* status : todo | doing | done
+ deadline: timestamptz
+ finished_at: timestamptz
+ assignee_id: uuid <<FK>>
+ checklist: json
+}
+
+entity contribution  {
+* _id : uuid <<PK>>
+--
+* user_id : uuid <<FK>>
+* project_id : uuid <<FK>>
+* task_id : uuid <<FK>>
+* description : text
+* createdAt : timestamptz
+}
+
+' ───────── Relaciones ─────────
+user_system ||--o| profile : "_owner "
+
+user_system ||--o{ project_saved
+project ||--o{ project_saved
+
+user_system ||--o{ project_join_request : solicita
+user_system |o--o{ project_join_request : "revisa"
+project ||--o{ project_join_request
+
+user_system ||--o{ project_member
+project ||--o{ project_member
+
+user_system ||--o{ project_invitation : "invitado"
+project ||--o{ project_invitation : invita
+
+project ||--o{ task
+
+project_member ||--o{ contribution : "(user_id, project_id)"
+user_system ||--o{ task: "user_id"
+task ||--o{ contribution
+
+' ───────── Notas ─────────
+note bottom of contribution
+BEFORE INSERT OR UPDATE (si es posible):
+  validar que el member y la task
+  sean del mismo proyecto.
+end note
+
+note bottom of project_join_request
+Una sola solicitud pending a la vez
+  por cada (user_id, project_id).
+Las denied/cancelled quedan de historial.
+end note
+
+note bottom of project_member
+Cada estancia es una fila y nunca se borra ni
+  se reabre: salir o ser echado la marca left o
+  removed (con leftAt) y volver crea una fila nueva.
+  Activo = fila con status active. ROBLE no
+  garantiza unicidad: addProjectMember no inserta
+  si ya hay una activa.
+Las solicitudes e invitaciones accepted son
+  historia; solo project_member dice quién
+  colabora hoy.
+Pendiente: qué pasa cuando alguien se va
+(status o left_at).
+end note
+
+note bottom of project_invitation
+  El cliente verifica TODOS los correos
+  (consulta guardada usuario_por_correo)
+  ANTES de crear el proyecto.
+  Si alguno no tiene cuenta, no se escribe
+  nada: la creación se aborta por completo.
+  Si la inserción falla después de crear el
+  proyecto, se borra el proyecto con sus
+  miembros e invitaciones (rollback).
+  Una sola pending por (project_id, email).
+end note
+
+@enduml

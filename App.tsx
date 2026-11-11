@@ -1,10 +1,19 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
+import {
+  Cabin_400Regular,
+  Cabin_500Medium,
+  Cabin_600SemiBold,
+  Cabin_700Bold,
+} from "@expo-google-fonts/cabin";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import React, { useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
+import { StyleSheet, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 
 import { Container } from "./src/core/di/container";
@@ -14,11 +23,10 @@ import { MissingConfigScreen } from "./src/core/roble/MissingConfigScreen";
 import { createLocalContainer } from "./src/core/di/localContainer";
 import { missingRobleConfig, useLocalData } from "./src/core/roble/robleConfig";
 import { SessionProvider, useSession } from "./src/features/auth/presentation/context/SessionContext";
-import { FollowsProvider } from "./src/features/listings/presentation/context/FollowsContext";
-import { NotificationsProvider } from "./src/features/notifications/presentation/context/NotificationsContext";
+import { useNavigationPersistence } from "./src/navigation/navigationPersistence";
 import { navigationRef } from "./src/navigation/navigationRef";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { darkTheme, lightTheme } from "./src/theme/theme";
+import { navigationFonts, themeFor } from "./src/theme/theme";
 
 // Expo Go doesn't support customizing the splash screen; only apply options in development/production builds.
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
@@ -37,26 +45,42 @@ export default function App() {
 }
 
 // `container` lets tests swap the Roble data sources for fakes.
-export function AppRoot({ container }: { container?: Container }) {
+// `persistNavigation`: las pruebas lo apagan para que una no herede la
+// navegación de la anterior.
+export function AppRoot({ container, persistNavigation = true }: { container?: Container; persistNavigation?: boolean }) {
   const [fontsReady, setFontsReady] = useState(false);
+  const navigation = useNavigationPersistence(persistNavigation);
   const scheme = useColorScheme();
-  const theme = scheme === "dark" ? darkTheme : lightTheme;
+  const theme = themeFor(scheme);
   // Sin `.env` no hay a qué servidor conectarse: mejor decirlo en pantalla que
   // fallar después con un error de red que no explica nada.
   const missing = container ? [] : missingRobleConfig();
 
   useEffect(() => {
-    // Paper draws its icons with MaterialCommunityIcons, so preload that font.
-    Font.loadAsync(MaterialCommunityIcons.font)
+    // Paper draws its icons with MaterialCommunityIcons, so preload that font;
+    // the text uses Cabin (see src/theme/theme.ts).
+    Font.loadAsync({
+      ...MaterialCommunityIcons.font,
+      Cabin_400Regular,
+      Cabin_500Medium,
+      Cabin_600SemiBold,
+      Cabin_700Bold,
+    })
       .catch((e) => console.warn(e))
       .finally(() => setFontsReady(true));
   }, []);
+
+  // El fondo de la ventana sigue al tema: sin esto, al pasar a oscuro se ve un
+  // destello blanco detrás de la app.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.colors.background).catch(() => {});
+  }, [theme.colors.background]);
 
   useEffect(() => {
     if (fontsReady && missing.length > 0) SplashScreen.hide();
   }, [fontsReady, missing.length]);
 
-  if (!fontsReady) return null;
+  if (!fontsReady || !navigation.ready) return null;
 
   if (missing.length > 0) {
     return (
@@ -68,6 +92,7 @@ export function AppRoot({ container }: { container?: Container }) {
 
   const navigationTheme = {
     ...(scheme === "dark" ? DarkTheme : DefaultTheme),
+    fonts: navigationFonts,
     colors: {
       ...(scheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
       background: theme.colors.background,
@@ -80,21 +105,25 @@ export function AppRoot({ container }: { container?: Container }) {
   };
 
   return (
-    <DIProvider container={container}>
-      <PaperProvider theme={theme}>
-        <SnackbarProvider>
-          <SessionProvider>
-            <FollowsProvider>
-              <NotificationsProvider>
-                <NavigationContainer ref={navigationRef} theme={navigationTheme}>
-                  <Shell />
-                </NavigationContainer>
-              </NotificationsProvider>
-            </FollowsProvider>
-          </SessionProvider>
-        </SnackbarProvider>
-      </PaperProvider>
-    </DIProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <StatusBar style="auto" />
+      <DIProvider container={container}>
+        <PaperProvider theme={theme}>
+          <SnackbarProvider>
+            <SessionProvider>
+              <NavigationContainer
+                ref={navigationRef}
+                theme={navigationTheme}
+                initialState={navigation.initialState}
+                onStateChange={navigation.onStateChange}
+              >
+                <Shell />
+              </NavigationContainer>
+            </SessionProvider>
+          </SnackbarProvider>
+        </PaperProvider>
+      </DIProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -107,3 +136,7 @@ function Shell() {
   }, [ready]);
   return ready ? <RootNavigator /> : null;
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

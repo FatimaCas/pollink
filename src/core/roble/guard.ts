@@ -44,3 +44,17 @@ export function textOrNull(value: unknown): string | null {
 }
 
 export type Row = Record<string, any>;
+
+// `jobs` y `skills` son jsonb: llegan como lista, o como texto JSON si se
+// escribieron con `JSON.stringify` (Roble rechaza la lista nativa).
+export function toStringList(value: unknown): string[] {
+  let list: unknown = value;
+  if (typeof list === "string") {
+    try {
+      list = JSON.parse(list);
+    } catch {
+      return list ? [String(list)] : [];
+    }
+  }
+  return Array.isArray(list) ? list.map((x) => String(x).trim()).filter(Boolean) : [];
+}
