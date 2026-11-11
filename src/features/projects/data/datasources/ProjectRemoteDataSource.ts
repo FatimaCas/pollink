@@ -31,9 +31,7 @@ export class ProjectRemoteDataSource implements ProjectDataSource {
   }
 
   async readMembers(filters?: Row) {
-    // `project_member` no es pública: un invitado no la puede leer (ver el
-    // handoff de D para A). Mejor contar cero que tumbar la lista.
-    if (this.client.readsPublicly) return [];
-    return this.client.db.read(TABLES.projectMember, filters);
+    // `project_member` es pública: un invitado o quien no inició sesión también la lee.
+    return this.client.readPublicOrPrivate(TABLES.projectMember, filters);
   }
 }

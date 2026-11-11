@@ -176,6 +176,7 @@
         "delete",
         "execute"
       ],
+      "public": true,
       "columns": [
         {
           "name": "user_id",
