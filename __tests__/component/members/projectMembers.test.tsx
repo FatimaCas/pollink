@@ -12,12 +12,13 @@ import { profile } from "../../support/profileFixtures";
 import { fake } from "../../support/fake";
 import { renderScreen } from "../../support/renderScreen";
 
+let mockGuest = false;
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   ...jest.requireActual("@/src/features/auth/presentation/context/SessionContext"),
   useSession: () => ({
-    currentUser: () => ({ userId: "u2", name: "Yo", email: "y@x.co", isAnonymous: false }),
+    currentUser: () => (mockGuest ? { userId: "g1", name: "", email: "", isAnonymous: true } : { userId: "u2", name: "Yo", email: "y@x.co", isAnonymous: false }),
     ensureLoggedIn: () => true,
   }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -47,6 +48,7 @@ function setup(
 }
 
 beforeEach(() => {
+  mockGuest = false;
   mockNavigate.mockClear();
   mockGoBack.mockClear();
 });
@@ -82,6 +84,15 @@ test("pone la carrera en el subtítulo y, si el perfil falla, deja la fila como 
     expect(screen.getByTestId("members.row.u1.subtitle").props.children).toBe("Ingeniería Acústica · Creador · desde 1 oct 2026"),
   );
   expect(screen.getByTestId("members.row.u2.subtitle").props.children).toBe("Colaborador · desde 2 oct 2026");
+});
+
+test("un invitado ve la lista de miembros, sin «Salir» ni «Quitar»", async () => {
+  mockGuest = true;
+  setup({ activeMembers: async () => members });
+  expect(await screen.findByText("2 miembros")).toBeTruthy();
+  expect(screen.getByTestId("members.row.u1.name").props.children).toBe("Otra persona");
+  expect(screen.queryByText("Salir del proyecto")).toBeNull();
+  expect(screen.queryByLabelText("Quitar del proyecto")).toBeNull();
 });
 
 test("«Seguir» sale desactivado, no en la fila propia, con el aviso discreto", async () => {

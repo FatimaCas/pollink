@@ -8,7 +8,7 @@ export class MembersRemoteDataSource implements MembersDataSource {
   constructor(private readonly client: RobleClient) {}
 
   readMembers(projectId?: string) {
-    return this.client.db.read(TABLES.projectMember, projectId ? { project_id: projectId } : undefined);
+    return this.client.readPublicOrPrivate(TABLES.projectMember, projectId ? { project_id: projectId } : undefined);
   }
 
   createMember(row: Row) {
