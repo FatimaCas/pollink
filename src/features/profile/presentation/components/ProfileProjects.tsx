@@ -9,7 +9,17 @@ import { ProjectFilter, useProfileProjectsViewModel } from "../viewmodels/usePro
 
 // «Proyectos» del perfil (Figma): el filtro y las tarjetas de en qué anda la
 // persona. Tocar una tarjeta abre el proyecto.
-export function ProfileProjects({ userId, onOpenProject }: { userId: string; onOpenProject: (projectId: string) => void }) {
+export function ProfileProjects({
+  userId,
+  onOpenProject,
+  title = "Proyectos",
+  emptyText = "Todavía no participa en ningún proyecto.",
+}: {
+  userId: string;
+  onOpenProject: (projectId: string) => void;
+  title?: string;
+  emptyText?: string;
+}) {
   const theme = useTheme();
   const vm = useProfileProjectsViewModel(userId);
 
@@ -22,7 +32,7 @@ export function ProfileProjects({ userId, onOpenProject }: { userId: string; onO
   return (
     <View style={styles.root} testID={ProfileProjects.rootKey}>
       <Text variant="titleLarge" style={styles.title}>
-        Proyectos
+        {title}
       </Text>
       <View style={styles.filter}>
         <ChoiceChips options={options} selected={vm.filter} onSelect={vm.setFilter} />
@@ -40,7 +50,7 @@ export function ProfileProjects({ userId, onOpenProject }: { userId: string; onO
         </View>
       ) : vm.projects.length === 0 ? (
         <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }} testID={ProfileProjects.emptyKey}>
-          {vm.total === 0 ? "Todavía no participa en ningún proyecto." : "Ningún proyecto en esta categoría."}
+          {vm.total === 0 ? emptyText : "Ningún proyecto en esta categoría."}
         </Text>
       ) : (
         vm.projects.map((project) => (
