@@ -10,7 +10,7 @@ import { JoinRequestRepository } from "@/src/features/requests/domain/repositori
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { DummyData } from "./dummyData";
 
-// Datos de demostración para `EXPO_PUBLIC_DATA_SOURCE=local`. Se siembran con
+// Datos de ejemplo para `EXPO_PUBLIC_DATA_SOURCE=local`. Se siembran con
 // los repositorios (no con filas a mano) para que formatos y contadores salgan
 // como en producción.
 
@@ -217,7 +217,7 @@ const PROJECTS: Seed[] = [
   },
 ];
 
-export async function seedDemoData(container: Container): Promise<void> {
+export async function seedLocalData(container: Container): Promise<void> {
   const auth = container.resolve<AuthRepository>(TOKENS.AuthRepo);
   const profiles = container.resolve<ProfileRepository>(TOKENS.ProfileRepo);
   const projects = container.resolve<ProjectRepository>(TOKENS.ProjectRepo);

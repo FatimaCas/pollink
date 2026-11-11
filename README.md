@@ -64,7 +64,7 @@ npm run start:local
 ```
 
 Usa los mismos repositorios con datasources en memoria
-(`EXPO_PUBLIC_DATA_SOURCE=local`) y arranca con datos de demo: proyectos, equipos y
+(`EXPO_PUBLIC_DATA_SOURCE=local`) y arranca con datos de ejemplo: proyectos, equipos y
 tareas de ejemplo. La cuenta de prueba es `ana@demo.com` / `123456`.
 Los datos se pierden al cerrar la app.
 

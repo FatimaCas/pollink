@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { seedDemoData } from "@/src/core/data/demoSeed";
+import { seedLocalData } from "@/src/core/data/localSeed";
 import { DummyData } from "@/src/core/data/dummyData";
 import { createLocalContainer } from "@/src/core/di/localContainer";
 import { TOKENS } from "@/src/core/di/tokens";
@@ -12,9 +12,9 @@ import { JoinRequestRepository } from "@/src/features/requests/domain/repositori
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { TrustRepository } from "@/src/features/trust/domain/repositories/TrustRepository";
 
-test("los datos de demo dejan a Ana con proyectos, solicitudes, una invitación y tareas en las tres columnas", async () => {
+test("los datos locales dejan a Ana con proyectos, solicitudes, una invitación y tareas en las tres columnas", async () => {
   const c = createLocalContainer(new DummyData({ latencyMs: 0 }));
-  await seedDemoData(c);
+  await seedLocalData(c);
   const auth = c.resolve<AuthRepository>(TOKENS.AuthRepo);
   const projects = c.resolve<ProjectRepository>(TOKENS.ProjectRepo);
   const tasks = c.resolve<TaskRepository>(TOKENS.TaskRepo);

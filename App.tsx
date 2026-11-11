@@ -21,7 +21,7 @@ import { DIProvider } from "./src/core/di/DIProvider";
 import { SnackbarProvider } from "./src/core/feedback/SnackbarProvider";
 import { MissingConfigScreen } from "./src/core/roble/MissingConfigScreen";
 import { DummyData } from "./src/core/data/dummyData";
-import { seedDemoData } from "./src/core/data/demoSeed";
+import { seedLocalData } from "./src/core/data/localSeed";
 import { createLocalContainer } from "./src/core/di/localContainer";
 import { missingRobleConfig, useLocalData } from "./src/core/roble/robleConfig";
 import { SessionProvider, useSession } from "./src/features/auth/presentation/context/SessionContext";
@@ -44,8 +44,8 @@ if (!isExpoGo) {
 const localData = useLocalData ? new DummyData({ latencyMs: 0 }) : undefined;
 const localContainer = localData ? createLocalContainer(localData) : undefined;
 const localSeeded = localContainer
-  ? seedDemoData(localContainer)
-      .catch((e) => console.warn("No se pudieron sembrar los datos de demo", e))
+  ? seedLocalData(localContainer)
+      .catch((e) => console.warn("No se pudieron sembrar los datos locales", e))
       .finally(() => localData?.setLatency(300))
   : Promise.resolve();
 
