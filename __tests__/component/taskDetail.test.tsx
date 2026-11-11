@@ -4,6 +4,7 @@ import React from "react";
 import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
+import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { ProjectTask } from "@/src/features/tasks/domain/entities/ProjectTask";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import TaskDetailScreen from "@/src/features/tasks/presentation/screens/TaskDetailScreen";
@@ -55,6 +56,7 @@ const task = (over: Partial<ProjectTask> = {}): ProjectTask => ({
 
 function setup(repo: Partial<TaskRepository>, owner = "u9") {
   const c = new Container();
+  c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => ({}) }, "ProfileRepo"));
   c.register(TOKENS.TaskRepo, fake<TaskRepository>({ getComments: async () => [], ...repo }, "TaskRepo"));
   c.register(
     TOKENS.MembersRepo,

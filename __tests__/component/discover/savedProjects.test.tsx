@@ -4,6 +4,7 @@ import React from "react";
 import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
 import { DiscoverRepository } from "@/src/features/discover/domain/repositories/DiscoverRepository";
+import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { ProjectRepository } from "@/src/features/projects/domain/repositories/ProjectRepository";
 import ProjectsScreen from "@/src/features/projects/presentation/screens/ProjectsScreen";
 import { project } from "../../support/discoverFixtures";
@@ -27,7 +28,8 @@ function setup(repo: Partial<DiscoverRepository>) {
   const c = new Container()
     .register(TOKENS.DiscoverRepo, fake<DiscoverRepository>(repo, "DiscoverRepo"))
     // «Mis proyectos» (C3) también carga al montar la pestaña.
-    .register(TOKENS.ProjectRepo, fake<ProjectRepository>({ getProjectsOfPerson: async () => [] }, "ProjectRepo"));
+    .register(TOKENS.ProjectRepo, fake<ProjectRepository>({ getProjectsOfPerson: async () => [], getProjects: async () => [] }, "ProjectRepo"))
+    .register(TOKENS.InvitationRepo, fake<InvitationRepository>({ pendingFor: async () => [] }, "InvitationRepo"));
   return renderScreen(ProjectsScreen, c);
 }
 

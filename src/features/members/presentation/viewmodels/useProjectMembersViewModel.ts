@@ -7,10 +7,11 @@ import { useSession } from "@/src/features/auth/presentation/context/SessionCont
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { isOwner, ProjectMember } from "../../domain/entities/ProjectMember";
 import { MembersRepository } from "../../domain/repositories/MembersRepository";
+import { usePeopleNames } from "../hooks/usePeopleNames";
 
 // Estado de la pestaña Miembros: quienes están hoy en el proyecto (el creador
-// primero). El nombre y la carrera dependen del directorio de B; mientras no
-// exista se muestra «Tú» / «Otra persona».
+// primero). Los nombres vienen del directorio de B; uno mismo es «Tú» y, mientras
+// llega un nombre, «Otra persona».
 export function useProjectMembersViewModel(projectId: string) {
   const repo = useInject<MembersRepository>(TOKENS.MembersRepo);
   const tasks = useInject<TaskRepository>(TOKENS.TaskRepo);
@@ -83,7 +84,9 @@ export function useProjectMembersViewModel(projectId: string) {
     setMembers((current) => current.filter((m) => m.userId !== member.userId));
     return null;
   };
-  const nameOf = (member: ProjectMember) => (member.userId === userId ? "Tú" : "Otra persona");
+  const nameFromDirectory = usePeopleNames(members.map((m) => m.userId));
+  const nameOf = (member: ProjectMember) =>
+    member.userId === userId ? "Tú" : (nameFromDirectory(member.userId) ?? "Otra persona");
 
   return { members, loading, error, reload, userId, nameOf, canLeave, canRemove, leave, remove };
 }

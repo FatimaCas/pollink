@@ -4,6 +4,7 @@ import React from "react";
 import { Container } from "@/src/core/di/container";
 import { DIProvider } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
+import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { JoinRequestRepository } from "@/src/features/requests/domain/repositories/JoinRequestRepository";
 import { useApplicantViewModel } from "@/src/features/requests/presentation/viewmodels/useApplicantViewModel";
@@ -16,10 +17,11 @@ jest.mock("@/src/features/auth/presentation/context/SessionContext", () => ({
   useSession: () => require("../../support/sessionMock").fakeSession({ currentUser: () => ({ userId: "u_owner", name: "Dueña", email: "o@x.co", isAnonymous: false }) }),
 }));
 
-function container(requests: Partial<JoinRequestRepository>, members: Partial<MembersRepository> = {}) {
+function container(requests: Partial<JoinRequestRepository>, members: Partial<MembersRepository> = {}, invitations: Partial<InvitationRepository> = {}) {
   return new Container()
     .register(TOKENS.JoinRequestRepo, fake<JoinRequestRepository>(requests, "JoinRequestRepo"))
-    .register(TOKENS.MembersRepo, fake<MembersRepository>(members, "MembersRepo"));
+    .register(TOKENS.MembersRepo, fake<MembersRepository>(members, "MembersRepo"))
+    .register(TOKENS.InvitationRepo, fake<InvitationRepository>({ cancelPending: async () => 0, ...invitations }, "InvitationRepo"));
 }
 function wrap(c: Container) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
@@ -28,7 +30,7 @@ function wrap(c: Container) {
 }
 
 describe("useApplicantViewModel", () => {
-  test("aceptar: comprueba, agrega al miembro, marca la solicitud y cancela lo demás, en ese orden", async () => {
+  test("aceptar: comprueba, agrega al miembro, marca la solicitud y cancela solicitudes e invitaciones pendientes, en ese orden", async () => {
     const calls: string[] = [];
     const decided = joinRequest({ state: "accepted", reviewedBy: "u_owner" });
     const c = container(
@@ -39,13 +41,15 @@ describe("useApplicantViewModel", () => {
         cancelPending: async () => { calls.push("cancel"); return 0; },
       },
       { addMember: async () => { calls.push("addMember"); return {} as never; } },
+      { cancelPending: async () => { calls.push("cancelInvitations"); return 0; } },
     );
     const { result } = renderHook(() => useApplicantViewModel("r1"), { wrapper: wrap(c) });
     await waitFor(() => expect(result.current.request).not.toBeNull());
     let ok = false;
     await act(async () => { ok = await result.current.decide(true); });
     expect(ok).toBe(true);
-    expect(calls).toEqual(["ensure", "addMember", "decide", "cancel"]);
+    expect(calls.slice(0, 3)).toEqual(["ensure", "addMember", "decide"]);
+    expect(calls.slice(3).sort()).toEqual(["cancel", "cancelInvitations"]);
     expect(result.current.request?.state).toBe("accepted");
   });
 
@@ -59,6 +63,33 @@ describe("useApplicantViewModel", () => {
     await waitFor(() => expect(result.current.request).not.toBeNull());
     await act(async () => { await result.current.decide(true); });
     expect(addMember).toHaveBeenCalledWith({ projectId: "p9", userId: "u_x" });
+  });
+
+  test("aceptar cancela las invitaciones pendientes de esa persona en ese proyecto", async () => {
+    const cancelPending = jest.fn().mockResolvedValue(1);
+    const c = container(
+      { requestById: async () => joinRequest({ userId: "u_x", projectId: "p9" }), ensureAcceptable: async () => joinRequest(), decide: async () => joinRequest({ state: "accepted" }), cancelPending: async () => 0 },
+      { addMember: async () => ({}) as never },
+      { cancelPending },
+    );
+    const { result } = renderHook(() => useApplicantViewModel("r1"), { wrapper: wrap(c) });
+    await waitFor(() => expect(result.current.request).not.toBeNull());
+    await act(async () => { await result.current.decide(true); });
+    expect(cancelPending).toHaveBeenCalledWith({ projectId: "p9", userId: "u_x" });
+  });
+
+  test("si cancelar las invitaciones falla, la aceptación sigue siendo exitosa", async () => {
+    const c = container(
+      { requestById: async () => joinRequest(), ensureAcceptable: async () => joinRequest(), decide: async () => joinRequest({ state: "accepted" }), cancelPending: async () => 0 },
+      { addMember: async () => ({}) as never },
+      { cancelPending: async () => { throw new Error("sin red"); } },
+    );
+    const { result } = renderHook(() => useApplicantViewModel("r1"), { wrapper: wrap(c) });
+    await waitFor(() => expect(result.current.request).not.toBeNull());
+    let ok = false;
+    await act(async () => { ok = await result.current.decide(true); });
+    expect(ok).toBe(true);
+    expect(result.current.error).toBeNull();
   });
 
   test("si el proyecto ya cerró no agrega a nadie y muestra el motivo", async () => {

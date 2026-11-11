@@ -6,6 +6,7 @@ import { Container } from "@/src/core/di/container";
 import { TOKENS } from "@/src/core/di/tokens";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
+import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import ProjectMembersScreen from "@/src/features/members/presentation/screens/ProjectMembersScreen";
 import { fake } from "../support/fake";
 import { renderScreen } from "../support/renderScreen";
@@ -31,10 +32,15 @@ const members = [
   { userId: "u2", role: "collaborator" as const, joinedAt: new Date(2026, 9, 2) },
 ];
 
-function setup(repo: Partial<MembersRepository>, tasks: Partial<TaskRepository> = {}) {
+function setup(
+  repo: Partial<MembersRepository>,
+  tasks: Partial<TaskRepository> = {},
+  names: Record<string, string> = {},
+) {
   const c = new Container();
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(tasks, "TaskRepo"));
   c.register(TOKENS.MembersRepo, fake<MembersRepository>(repo, "MembersRepo"));
+  c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => names }, "ProfileRepo"));
   return renderScreen(ProjectMembersScreen, c);
 }
 
@@ -56,6 +62,12 @@ test("lista a los miembros con papel y fecha, y marca «Tú»", async () => {
   expect(await screen.findByText("2 miembros")).toBeTruthy();
   expect(screen.getByTestId("members.row.u1.name").props.children).toBe("Otra persona");
   expect(screen.getByTestId("members.row.u1.subtitle").props.children).toMatch(/^Creador · desde 1 oct 2026$/);
+  expect(screen.getByTestId("members.row.u2.name").props.children).toBe("Tú");
+});
+
+test("muestra el nombre de los demás cuando llega del directorio", async () => {
+  setup({ activeMembers: async () => members }, {}, { u1: "Ifeoma Zuluaga" });
+  await waitFor(() => expect(screen.getByTestId("members.row.u1.name").props.children).toBe("Ifeoma Zuluaga"));
   expect(screen.getByTestId("members.row.u2.name").props.children).toBe("Tú");
 });
 

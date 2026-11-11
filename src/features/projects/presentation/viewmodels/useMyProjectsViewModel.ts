@@ -4,7 +4,9 @@ import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
-import { Project } from "../../domain/entities/Project";
+import { answerable } from "@/src/features/invitations/domain/entities/ProjectInvitation";
+import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
+import { isOpen, Project } from "../../domain/entities/Project";
 import { ProjectRepository } from "../../domain/repositories/ProjectRepository";
 
 // La pestaña Proyectos (C3): «Mis proyectos» (los que creó) y «Otros
@@ -12,6 +14,7 @@ import { ProjectRepository } from "../../domain/repositories/ProjectRepository";
 // pantalla muestra el aviso para invitados.
 export function useMyProjectsViewModel() {
   const repo = useInject<ProjectRepository>(TOKENS.ProjectRepo);
+  const invitations = useInject<InvitationRepository>(TOKENS.InvitationRepo);
   const { user, hasAccount, ensureLoggedIn } = useSession();
   const userId = hasAccount ? (user?.userId ?? null) : null;
 
@@ -19,6 +22,7 @@ export function useMyProjectsViewModel() {
   const [joined, setJoined] = useState<Project[]>([]);
   const [loading, setLoading] = useState(userId !== null);
   const [error, setError] = useState<string | null>(null);
+  const [invitationCount, setInvitationCount] = useState(0);
 
   const [version, setVersion] = useState(0);
   const reload = useCallback(() => setVersion((v) => v + 1), []);
@@ -35,6 +39,17 @@ export function useMyProjectsViewModel() {
         setOwned(all.filter((p) => p.ownerId === userId));
         setJoined(all.filter((p) => p.ownerId !== userId));
         setError(null);
+        // Cuántas invitaciones puede responder (el número junto a
+        // «Invitaciones»). Es un aviso: si falla, se muestra sin número.
+        try {
+          const pending = await invitations.pendingFor(userId);
+          const invited = await repo.getProjects(pending.map((i) => i.projectId));
+          if (cancelled) return;
+          const open = new Set(invited.filter(isOpen).map((p) => p.id));
+          setInvitationCount(answerable(pending, open, new Set(all.map((p) => p.id))).length);
+        } catch {
+          if (!cancelled) setInvitationCount(0);
+        }
       } catch (e) {
         if (!cancelled) setError(messageOf(e));
       } finally {
@@ -44,7 +59,7 @@ export function useMyProjectsViewModel() {
     return () => {
       cancelled = true;
     };
-  }, [repo, userId, version]);
+  }, [repo, invitations, userId, version]);
 
   const needsAccount = userId === null;
   return {
@@ -54,6 +69,7 @@ export function useMyProjectsViewModel() {
     joined: needsAccount ? [] : joined,
     loading: needsAccount ? false : loading,
     error: needsAccount ? null : error,
+    invitationCount: needsAccount ? 0 : invitationCount,
     reload,
     // Lleva al login (o al registro) a quien no tiene cuenta.
     signIn: ensureLoggedIn,

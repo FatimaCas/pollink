@@ -1,4 +1,5 @@
 import {
+  answerable,
   cleanEmails,
   invitationStatusOf,
   isPending,
@@ -49,4 +50,15 @@ test("looksLikeEmail", () => {
   expect(looksLikeEmail("ana@demo")).toBe(false);
   expect(looksLikeEmail("ana demo@x.co")).toBe(false);
   expect(looksLikeEmail("")).toBe(false);
+});
+
+test("answerable deja solo las pendientes de proyectos abiertos donde aún no colabora", () => {
+  const list = [
+    invitation({ id: "ok", projectId: "abierto" }),
+    invitation({ id: "cerrado", projectId: "cerrado" }),
+    invitation({ id: "ya", projectId: "ya" }),
+    invitation({ id: "borrado", projectId: "borrado" }),
+    invitation({ id: "respondida", projectId: "abierto", status: "declined" }),
+  ];
+  expect(answerable(list, new Set(["abierto", "ya"]), new Set(["ya"])).map((i) => i.id)).toEqual(["ok"]);
 });
