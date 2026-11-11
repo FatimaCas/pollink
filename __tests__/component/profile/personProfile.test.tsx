@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
 
 import { Container } from "@/src/core/di/container";
@@ -60,6 +60,17 @@ describe("PersonProfileScreen", () => {
     fireEvent.press(screen.getByTestId(PersonProfileScreen.followKey));
     expect(await screen.findByText("Siguiendo")).toBeTruthy();
     expect(follow).toHaveBeenCalledWith({ followerId: "u2", followedId: "u9" });
+  });
+
+  test("al dejar de seguir, el contador se vuelve a pedir", async () => {
+    let count = 1;
+    const unfollow = jest.fn(async () => {
+      count = 0;
+    });
+    setup({ follows: { followingIds: async () => ["u9"], followersCount: async () => count, unfollow } });
+    expect(await screen.findByTestId(PersonProfileScreen.followersKey)).toHaveTextContent("1 seguidor");
+    fireEvent.press(await screen.findByText("Siguiendo"));
+    await waitFor(() => expect(screen.getByTestId(PersonProfileScreen.followersKey)).toHaveTextContent("0 seguidores"));
   });
 
   test("en su propio perfil no hay botón de seguir", async () => {

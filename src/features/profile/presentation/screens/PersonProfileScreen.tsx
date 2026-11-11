@@ -25,7 +25,7 @@ export default function PersonProfileScreen() {
   const { currentUser } = useSession();
   const follow = useFollowToggle([params.userId]);
   const isFollowing = follow.isFollowing(params.userId);
-  const followers = useFollowersCount(params.userId, isFollowing);
+  const followers = useFollowersCount(params.userId, follow.settled);
   const isMe = currentUser()?.userId === params.userId;
 
   if (vm.loading && !vm.profile) return <ActivityIndicator style={styles.loading} testID={PersonProfileScreen.loadingKey} />;

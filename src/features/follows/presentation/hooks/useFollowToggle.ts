@@ -17,6 +17,8 @@ export function useFollowToggle(userIds: string[]) {
 
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  // Sube cuando termina una escritura: las pantallas lo usan para releer contadores.
+  const [settled, setSettled] = useState(0);
 
   useEffect(() => {
     if (!myId) return;
@@ -53,10 +55,12 @@ export function useFollowToggle(userIds: string[]) {
       } catch (e) {
         set(was);
         setError(messageOf(e));
+      } finally {
+        setSettled((n) => n + 1);
       }
     },
     [repo, myId, following, ensureLoggedIn],
   );
 
-  return { isFollowing, toggle, error };
+  return { isFollowing, toggle, error, settled };
 }
