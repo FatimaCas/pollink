@@ -28,7 +28,8 @@ y CONVENTIONS.md se contradicen, manda CONVENTIONS.md.
   a alguien (sus tareas sin terminar quedan libres); seguir a otras personas y ver cuántas te siguen.
 - **Tareas:** tablero Pendientes · En progreso · Terminadas, fecha límite
   opcional, reservar una tarea, checklist (completarlo la termina) y
-  comentarios.
+  comentarios. En «Asignaciones» se ve quién tiene qué y el creador del
+  proyecto asigna tareas pendientes.
 - **Perfil y confianza:** perfil propio y de otras personas, historial de
   colaboración e indicadores de compromiso y de entregas a tiempo.
 

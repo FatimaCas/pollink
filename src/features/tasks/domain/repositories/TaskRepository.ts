@@ -31,6 +31,12 @@ export interface TaskRepository {
   // ya fuera suya.
   reserveTask(params: { task: ProjectTask; userId: string }): Promise<ProjectTask>;
 
+  // Asigna una tarea pendiente a `assigneeId`: queda `doing` con esa persona y
+  // cuenta como tomada igual que en `reserveTask`. Solo la puede asignar el
+  // creador del proyecto (`requestedBy`) y la persona debe ser miembro activo.
+  // Una tarea que ya tiene responsable no se reasigna.
+  assignTask(params: { task: ProjectTask; assigneeId: string; requestedBy: string }): Promise<ProjectTask>;
+
   // Guarda descripción y checklist en una sola escritura. El estado lo decide
   // `statusAfterSaving`; si cambia, se recalcula el progreso del proyecto y
   // `finished_at` (se escribe al terminarse, se borra al reabrirse).

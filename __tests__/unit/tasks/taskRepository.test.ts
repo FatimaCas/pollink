@@ -85,6 +85,48 @@ describe("reserveTask", () => {
   });
 });
 
+describe("assignTask", () => {
+  test("el creador deja la tarea doing con esa persona y suma una tomada", async () => {
+    const { repo, stay } = await setup();
+    const task = await repo.createTask({ projectId: "p1", title: "Logo" });
+    const assigned = await repo.assignTask({ task, assigneeId: "u_beto", requestedBy: "u_ana" });
+    expect(assigned).toMatchObject({ status: "doing", assigneeId: "u_beto" });
+    expect((await repo.getTasks("p1"))[0]).toMatchObject({ status: "doing", assigneeId: "u_beto" });
+    expect((await stay("u_beto")).taken).toBe(1);
+  });
+
+  test("el creador se la puede asignar a sí mismo", async () => {
+    const { repo, stay } = await setup();
+    const task = await repo.createTask({ projectId: "p1", title: "Logo" });
+    await repo.assignTask({ task, assigneeId: "u_ana", requestedBy: "u_ana" });
+    expect((await stay("u_ana")).taken).toBe(1);
+  });
+
+  test("quien no es el creador no puede asignar", async () => {
+    const { repo, stay } = await setup();
+    const task = await repo.createTask({ projectId: "p1", title: "Logo" });
+    await expect(repo.assignTask({ task, assigneeId: "u_beto", requestedBy: "u_beto" })).rejects.toThrow("Solo quien creó");
+    expect((await repo.getTasks("p1"))[0].status).toBe("todo");
+    expect((await stay("u_beto")).taken).toBe(0);
+  });
+
+  test("la persona debe ser miembro activo", async () => {
+    const { repo, members } = await setup();
+    const task = await repo.createTask({ projectId: "p1", title: "Logo" });
+    await expect(repo.assignTask({ task, assigneeId: "u_otro", requestedBy: "u_ana" })).rejects.toThrow("no es miembro");
+    await members.leave({ projectId: "p1", userId: "u_beto" });
+    await expect(repo.assignTask({ task, assigneeId: "u_beto", requestedBy: "u_ana" })).rejects.toThrow("no es miembro");
+  });
+
+  test("no reasigna una tarea que ya tiene responsable", async () => {
+    const { repo, stay } = await setup();
+    const task = await repo.createTask({ projectId: "p1", title: "Logo" });
+    await repo.reserveTask({ task, userId: "u_beto" });
+    await expect(repo.assignTask({ task, assigneeId: "u_ana", requestedBy: "u_ana" })).rejects.toThrow("ya tiene responsable");
+    expect((await stay("u_ana")).taken).toBe(0);
+  });
+});
+
 describe("updateTaskStatus", () => {
   test("terminarla escribe finished_at, el progreso y las terminadas de quien la tiene", async () => {
     const { repo, stay, project, tick } = await setup();

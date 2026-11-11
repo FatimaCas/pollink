@@ -45,6 +45,7 @@ export type RootStackParamList = {
   // D · members y tasks
   ProjectMembers: { projectId: string };
   TaskBoard: { projectId: string };
+  ProjectAssignments: { projectId: string };
   TaskDetail: { projectId: string; taskId: string };
 };
 
