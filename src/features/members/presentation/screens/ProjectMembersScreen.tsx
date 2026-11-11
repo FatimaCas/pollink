@@ -1,5 +1,4 @@
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { RouteProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
@@ -8,20 +7,18 @@ import { EmptyState } from "@/src/core/components/EmptyState";
 import { PersonRow } from "@/src/core/components/PersonRow";
 import { useFollowToggle } from "@/src/features/follows/presentation/hooks/useFollowToggle";
 import { Formatters } from "@/src/core/utils/formatters";
-import type { RootStackParamList } from "@/src/navigation/types";
 import { spacing } from "@/src/theme/tokens";
 import { MEMBER_ROLE_LABELS } from "../../domain/entities/MemberStay";
 import { useProjectMembersViewModel } from "../viewmodels/useProjectMembersViewModel";
 
 // La pestaña «Miembros» de un proyecto: quién está hoy, con su papel y desde
 // cuándo; tocar a alguien abre su perfil (B7). «Seguir» / «Siguiendo» usa la
-// feature `follows`; un invitado lo ve y, al tocarlo, se le pide iniciar sesión. La barra Miembros · Tareas · Asignaciones es de la pantalla del
-// proyecto (C4).
-export default function ProjectMembersScreen() {
+// feature `follows`; un invitado lo ve y, al tocarlo, se le pide iniciar sesión. La barra Miembros · Tareas · Asignaciones es de
+// `ProjectWorkspace`, que monta este cuerpo.
+export function ProjectMembersTab({ projectId }: { projectId: string }) {
   const theme = useTheme();
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RootStackParamList, "ProjectMembers">>();
-  const vm = useProjectMembersViewModel(params.projectId);
+  const vm = useProjectMembersViewModel(projectId);
   const follow = useFollowToggle(vm.members.map((m) => m.userId));
 
   const confirm = (title: string, message: string, confirmLabel: string, run: () => Promise<string | null>, after?: () => void) =>
@@ -138,7 +135,7 @@ export default function ProjectMembersScreen() {
                 )
               }
               onPress={() =>
-                navigation.navigate("PersonProfile", { userId: item.userId, projectId: params.projectId })
+                navigation.navigate("PersonProfile", { userId: item.userId, projectId })
               }
             />
           );

@@ -1,5 +1,4 @@
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
-import type { RouteProp } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
@@ -7,7 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { SegmentedTabs } from "@/src/core/components/SegmentedTabs";
-import type { RootStackParamList } from "@/src/navigation/types";
 import { spacing } from "@/src/theme/tokens";
 import { TaskStatus } from "../../domain/entities/TaskStatus";
 import { NewTaskSheet } from "../components/NewTaskSheet";
@@ -23,13 +21,12 @@ const COLUMNS: { value: TaskStatus; label: string; empty: string }[] = [
 // El tablero de tareas de un proyecto (el «Gabinete de tareas» de Imker): una
 // columna por estado en pestañas, porque en el teléfono caben de una en una, y
 // «Crear tarea» abajo. La barra Miembros · Tareas · Asignaciones del Figma es de
-// la pantalla del proyecto, no de este tablero; «Asignaciones» sigue pendiente.
-export default function TaskBoardScreen() {
+// `ProjectWorkspace`, que monta este cuerpo.
+export function TaskBoardTab({ projectId }: { projectId: string }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RootStackParamList, "TaskBoard">>();
-  const board = useTaskBoardViewModel(params.projectId);
+  const board = useTaskBoardViewModel(projectId);
   // Al volver del detalle el estado de una tarea pudo cambiar: se relee el
   // tablero (la primera vez ya lo cargó el view model).
   const firstFocus = useRef(true);
@@ -89,7 +86,7 @@ export default function TaskBoardScreen() {
               task={item}
               currentUserId={board.userId}
               busy={board.busyTaskId === item.id}
-              onOpen={() => navigation.navigate("TaskDetail", { projectId: params.projectId, taskId: item.id })}
+              onOpen={() => navigation.navigate("TaskDetail", { projectId, taskId: item.id })}
               onReserve={() => board.reserve(item)}
             />
           )}

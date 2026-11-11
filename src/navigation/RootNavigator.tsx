@@ -8,7 +8,7 @@ import RegisterScreen from "../features/auth/presentation/screens/RegisterScreen
 import ApplicationSentScreen from "../features/discover/presentation/screens/ApplicationSentScreen";
 import DiscoverScreen from "../features/discover/presentation/screens/DiscoverScreen";
 import InvitationsScreen from "../features/invitations/presentation/screens/InvitationsScreen";
-import ProjectMembersScreen from "../features/members/presentation/screens/ProjectMembersScreen";
+import ProjectWorkspaceScreen from "../features/projects/presentation/screens/ProjectWorkspaceScreen";
 import CollaborationHistoryScreen from "../features/profile/presentation/screens/CollaborationHistoryScreen";
 import EditProfileScreen from "../features/profile/presentation/screens/EditProfileScreen";
 import OnboardingScreen from "../features/profile/presentation/screens/OnboardingScreen";
@@ -22,8 +22,6 @@ import ProjectsScreen from "../features/projects/presentation/screens/ProjectsSc
 import ApplicantDetailScreen from "../features/requests/presentation/screens/ApplicantDetailScreen";
 import CollaborationRequestsScreen from "../features/requests/presentation/screens/CollaborationRequestsScreen";
 import RequestDecisionScreen from "../features/requests/presentation/screens/RequestDecisionScreen";
-import AssignmentsScreen from "../features/tasks/presentation/screens/AssignmentsScreen";
-import TaskBoardScreen from "../features/tasks/presentation/screens/TaskBoardScreen";
 import TaskDetailScreen from "../features/tasks/presentation/screens/TaskDetailScreen";
 import TrustIndicatorsScreen from "../features/trust/presentation/screens/TrustIndicatorsScreen";
 import { RootStackParamList, TabParamList } from "./types";
@@ -102,9 +100,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Invitations" component={InvitationsScreen} options={{ title: "Invitaciones" }} />
 
       {/* D · tasks */}
-      <Stack.Screen name="ProjectMembers" component={ProjectMembersScreen} options={{ title: "Miembros" }} />
-      <Stack.Screen name="TaskBoard"component={TaskBoardScreen} options={{ title: "Tareas" }} />
-      <Stack.Screen name="ProjectAssignments" component={AssignmentsScreen} options={{ title: "Asignaciones" }} />
+      <Stack.Screen name="ProjectWorkspace" component={ProjectWorkspaceScreen} options={{ title: "" }} />
       <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: "Tarea" }} />
     </Stack.Navigator>
   );

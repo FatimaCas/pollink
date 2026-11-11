@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 //
 // La clave lleva versión: si cambian las rutas de `types.ts` de forma que un
 // estado viejo ya no sirva, se sube la versión y el estado viejo se ignora.
-const KEY = "pollink.navigation.v1";
+const KEY = "pollink.navigation.v2";
 
 export function useNavigationPersistence(enabled: boolean) {
   const [ready, setReady] = useState(!enabled);

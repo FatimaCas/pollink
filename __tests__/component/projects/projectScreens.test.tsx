@@ -99,9 +99,11 @@ describe("ProjectInfoScreen", () => {
     expect(await screen.findByTestId(K.percentKey)).toHaveTextContent("60%");
     expect(screen.getByTestId(K.tasksSummaryKey)).toHaveTextContent("Aún no hay tareas en este proyecto.");
     fireEvent.press(screen.getByTestId(K.membersKey));
-    expect(mockNavigate).toHaveBeenCalledWith("ProjectMembers", { projectId: "p_1" });
+    expect(mockNavigate).toHaveBeenCalledWith("ProjectWorkspace", { projectId: "p_1", tab: "members" });
     fireEvent.press(screen.getByTestId(K.tasksKey));
-    expect(mockNavigate).toHaveBeenCalledWith("TaskBoard", { projectId: "p_1" });
+    expect(mockNavigate).toHaveBeenCalledWith("ProjectWorkspace", { projectId: "p_1", tab: "tasks" });
+    fireEvent.press(screen.getByTestId(K.assignmentsKey));
+    expect(mockNavigate).toHaveBeenCalledWith("ProjectWorkspace", { projectId: "p_1", tab: "assignments" });
     fireEvent.press(screen.getByTestId(K.requestsKey));
     expect(mockNavigate).toHaveBeenCalledWith("CollaborationRequests", { projectId: "p_1" });
   });

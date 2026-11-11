@@ -1,12 +1,9 @@
-import { useRoute } from "@react-navigation/native";
-import type { RouteProp } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Surface, Text, useTheme } from "react-native-paper";
 
 import { EmptyState } from "@/src/core/components/EmptyState";
 import { PersonRow } from "@/src/core/components/PersonRow";
-import type { RootStackParamList } from "@/src/navigation/types";
 import { radius, spacing } from "@/src/theme/tokens";
 import { ProjectTask } from "../../domain/entities/ProjectTask";
 import { useAssignmentsViewModel } from "../viewmodels/useAssignmentsViewModel";
@@ -15,10 +12,9 @@ import { useAssignmentsViewModel } from "../viewmodels/useAssignmentsViewModel";
 // con lo que tiene en curso y terminado. El creador puede asignar una tarea
 // pendiente: elige la tarea, elige a la persona y confirma. Sin diseño en Figma:
 // usa el estilo de `PersonRow` y de las tarjetas de tarea.
-export default function AssignmentsScreen() {
+export function AssignmentsTab({ projectId }: { projectId: string }) {
   const theme = useTheme();
-  const { params } = useRoute<RouteProp<RootStackParamList, "ProjectAssignments">>();
-  const vm = useAssignmentsViewModel(params.projectId);
+  const vm = useAssignmentsViewModel(projectId);
   // El paso del flujo de asignar: nada, elegir tarea o elegir persona.
   const [picking, setPicking] = useState<"task" | ProjectTask | null>(null);
 

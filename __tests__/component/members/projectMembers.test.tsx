@@ -8,7 +8,7 @@ import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRep
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { FollowRepository } from "@/src/features/follows/domain/repositories/FollowRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
-import ProjectMembersScreen from "@/src/features/members/presentation/screens/ProjectMembersScreen";
+import { ProjectMembersTab } from "@/src/features/members/presentation/screens/ProjectMembersScreen";
 import { profile } from "../../support/profileFixtures";
 import { fake } from "../../support/fake";
 import { renderScreen } from "../../support/renderScreen";
@@ -47,7 +47,7 @@ function setup(
   c.register(TOKENS.MembersRepo, fake<MembersRepository>(repo, "MembersRepo"));
   c.register(TOKENS.FollowRepo, fake<FollowRepository>({ followingIds: async () => [], ...follows }, "FollowRepo"));
   c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => names, ...(getProfileOf && { getProfileOf }) }, "ProfileRepo"));
-  return renderScreen(ProjectMembersScreen, c);
+  return renderScreen(() => <ProjectMembersTab projectId="p1" />, c);
 }
 
 beforeEach(() => {
