@@ -4,6 +4,7 @@ import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
+import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRepository";
 import { isOwner, ProjectMember } from "../../domain/entities/ProjectMember";
 import { MembersRepository } from "../../domain/repositories/MembersRepository";
@@ -15,9 +16,12 @@ import { usePeopleNames } from "../hooks/usePeopleNames";
 export function useProjectMembersViewModel(projectId: string) {
   const repo = useInject<MembersRepository>(TOKENS.MembersRepo);
   const tasks = useInject<TaskRepository>(TOKENS.TaskRepo);
+  const profiles = useInject<ProfileRepository>(TOKENS.ProfileRepo);
   const { currentUser } = useSession();
 
   const [members, setMembers] = useState<ProjectMember[]>([]);
+  // Carrera por `userId`. Si un perfil no carga, esa persona queda sin carrera.
+  const [careers, setCareers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +36,14 @@ export function useProjectMembersViewModel(projectId: string) {
         if (cancelled) return;
         setMembers(loaded);
         setError(null);
+        const results = await Promise.allSettled(loaded.map((m) => profiles.getProfileOf(m.userId)));
+        if (cancelled) return;
+        const found: Record<string, string> = {};
+        results.forEach((r, i) => {
+          const program = r.status === "fulfilled" ? r.value.career.program.trim() : "";
+          if (program) found[loaded[i].userId] = program;
+        });
+        setCareers(found);
       } catch (e) {
         if (!cancelled) setError(messageOf(e));
       } finally {
@@ -41,7 +53,7 @@ export function useProjectMembersViewModel(projectId: string) {
     return () => {
       cancelled = true;
     };
-  }, [repo, projectId, version]);
+  }, [repo, profiles, projectId, version]);
 
   const userId = currentUser()?.userId ?? null;
   const me = members.find((m) => m.userId === userId);
@@ -88,5 +100,7 @@ export function useProjectMembersViewModel(projectId: string) {
   const nameOf = (member: ProjectMember) =>
     member.userId === userId ? "Tú" : (nameFromDirectory(member.userId) ?? "Otra persona");
 
-  return { members, loading, error, reload, userId, nameOf, canLeave, canRemove, leave, remove };
+  const careerOf = (member: ProjectMember): string | null => careers[member.userId] ?? null;
+
+  return { members, loading, error, reload, userId, nameOf, careerOf, canLeave, canRemove, leave, remove };
 }

@@ -8,6 +8,7 @@ import { TaskRepository } from "@/src/features/tasks/domain/repositories/TaskRep
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { ProfileRepository } from "@/src/features/profile/domain/repositories/ProfileRepository";
 import ProjectMembersScreen from "@/src/features/members/presentation/screens/ProjectMembersScreen";
+import { profile } from "../../support/profileFixtures";
 import { fake } from "../../support/fake";
 import { renderScreen } from "../../support/renderScreen";
 
@@ -36,11 +37,12 @@ function setup(
   repo: Partial<MembersRepository>,
   tasks: Partial<TaskRepository> = {},
   names: Record<string, string> = {},
+  getProfileOf?: ProfileRepository["getProfileOf"],
 ) {
   const c = new Container();
   c.register(TOKENS.TaskRepo, fake<TaskRepository>(tasks, "TaskRepo"));
   c.register(TOKENS.MembersRepo, fake<MembersRepository>(repo, "MembersRepo"));
-  c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => names }, "ProfileRepo"));
+  c.register(TOKENS.ProfileRepo, fake<ProfileRepository>({ getNamesOf: async () => names, ...(getProfileOf && { getProfileOf }) }, "ProfileRepo"));
   return renderScreen(ProjectMembersScreen, c);
 }
 
@@ -69,6 +71,17 @@ test("muestra el nombre de los demás cuando llega del directorio", async () => 
   setup({ activeMembers: async () => members }, {}, { u1: "Ifeoma Zuluaga" });
   await waitFor(() => expect(screen.getByTestId("members.row.u1.name").props.children).toBe("Ifeoma Zuluaga"));
   expect(screen.getByTestId("members.row.u2.name").props.children).toBe("Tú");
+});
+
+test("pone la carrera en el subtítulo y, si el perfil falla, deja la fila como estaba", async () => {
+  setup({ activeMembers: async () => members }, {}, {}, async (userId) => {
+    if (userId === "u1") return profile({ userId, career: { program: "Ingeniería Acústica", institution: "Uninorte" } });
+    throw new Error("sin red");
+  });
+  await waitFor(() =>
+    expect(screen.getByTestId("members.row.u1.subtitle").props.children).toBe("Ingeniería Acústica · Creador · desde 1 oct 2026"),
+  );
+  expect(screen.getByTestId("members.row.u2.subtitle").props.children).toBe("Colaborador · desde 2 oct 2026");
 });
 
 test("«Seguir» sale desactivado, no en la fila propia, con el aviso discreto", async () => {
