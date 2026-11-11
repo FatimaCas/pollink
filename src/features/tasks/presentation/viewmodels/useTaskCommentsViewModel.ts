@@ -4,6 +4,7 @@ import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
+import { usePeopleNames } from "@/src/features/members/presentation/hooks/usePeopleNames";
 import { ProjectTask } from "../../domain/entities/ProjectTask";
 import { TaskComment } from "../../domain/entities/TaskComment";
 import { TaskRepository } from "../../domain/repositories/TaskRepository";
@@ -52,8 +53,11 @@ export function useTaskCommentsViewModel(task: ProjectTask | null) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repo, task?.id, deadlineKey, version]);
 
-  // «Tú» / «Otra persona» hasta que el directorio de B dé los nombres.
-  const authorOf = (comment: TaskComment) => (comment.userId === userId ? "Tú" : "Otra persona");
+  // Los nombres vienen del directorio de B; uno mismo es «Tú» y, mientras llega
+  // un nombre, «Otra persona».
+  const nameFromDirectory = usePeopleNames(comments.map((c) => c.userId));
+  const authorOf = (comment: TaskComment) =>
+    comment.userId === userId ? "Tú" : (nameFromDirectory(comment.userId) ?? "Otra persona");
 
   // Guarda el comentario. Devuelve null si se guardó o el mensaje de error
   // (la pantalla decide si limpia la caja).
