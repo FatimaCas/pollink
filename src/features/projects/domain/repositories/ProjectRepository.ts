@@ -6,9 +6,10 @@ import { Project, ProjectDraft } from "../entities/Project";
 //
 // Lo que cruza features lo orquesta el view model, no este repositorio:
 // - Crear un proyecto: `InvitationRepository.findAccounts` (validar correos) →
-//   `createProject` → `MembersRepository.addMember` (el creador, rol `owner`) →
-//   `InvitationRepository.invite`. Si algo falla después de crear, se deshace
-//   con `deleteProject`.
+//   `createProject` → `InvitationRepository.invite` →
+//   `MembersRepository.addMember` (el creador, rol `owner`, al final porque una
+//   estancia no se puede borrar). Si algo falla después de crear, se deshace
+//   con `InvitationRepository.deleteForProject` y `deleteProject`.
 // - Salir y quitar miembros son de `MembersRepository` (D).
 // - `progress` y `totalTasks` los escribe `TaskRepository` (D).
 //
