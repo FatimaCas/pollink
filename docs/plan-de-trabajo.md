@@ -56,9 +56,14 @@ Abre el camino para los demás: su Fase 0 bloquea a todo el equipo.
 
 > **Estado:** A1 hecha. A2 hecha salvo la verificación contra el proyecto de Roble
 > (`roble_schema_plan` y `npm run smoke` con un `.env` real). A3 hecha: stack,
-> pestañas, todas las rutas con pantallas pendientes y persistencia de la
-> navegación. También están listos los `di.ts` por feature, `TOKENS` completo y
-> `TABLES` / `QUERIES`, así que nadie necesita tocar los archivos compartidos.
+> pestañas, todas las rutas y persistencia de la navegación. A4 a A8 hechas con
+> el Figma y, donde no lo hay, con pantallas generadas a partir de los tokens.
+> Quedan acoplamientos por cerrar con otras personas: el botón «Solicitar unirme»
+> lo pone C4 con `ApplyToProject`; la lista «Mis proyectos / Otros proyectos» es
+> C3 (A dejó la pestaña con el segmento «Guardados»); los nombres de los
+> aplicantes y «Compromiso N %» esperan a `PeopleDirectory` (B4) y `TrustRepo`
+> (B5). Tampoco están las consultas guardadas en Roble
+> (`proyectos_filtrados` y `opciones_filtros_proyectos`: faltan crearlas con el MCP).
 
 | # | Tarea | Imker de referencia | Tam. |
 |---|---|---|---|
