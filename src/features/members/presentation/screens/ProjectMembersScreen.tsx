@@ -101,7 +101,7 @@ export default function ProjectMembersScreen() {
               testID={`members.row.${item.userId}`}
               name={vm.nameOf(item)}
               subtitleLines={2}
-              subtitle={[MEMBER_ROLE_LABELS[item.role], since].filter(Boolean).join(" · ")}
+              subtitle={[vm.careerOf(item), MEMBER_ROLE_LABELS[item.role], since].filter(Boolean).join(" · ")}
               action={
                 item.userId === vm.userId ? undefined : (
                   <View style={styles.actions}>
