@@ -7,6 +7,7 @@ import { TOKENS } from "@/src/core/di/tokens";
 import { AccountRequiredDialog } from "@/src/features/auth/presentation/components/AccountRequiredDialog";
 import { DiscoverRepository } from "@/src/features/discover/domain/repositories/DiscoverRepository";
 import ApplicationSentScreen from "@/src/features/discover/presentation/screens/ApplicationSentScreen";
+import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { JoinRequestRepository } from "@/src/features/requests/domain/repositories/JoinRequestRepository";
 import { ApplyToProject } from "@/src/features/requests/presentation/components/ApplyToProject";
@@ -43,6 +44,7 @@ function containerWith(requests: Partial<JoinRequestRepository>, members: Partia
   return new Container()
     .register(TOKENS.JoinRequestRepo, fake<JoinRequestRepository>(requests, "JoinRequestRepo"))
     .register(TOKENS.MembersRepo, fake<MembersRepository>(members, "MembersRepo"))
+    .register(TOKENS.InvitationRepo, fake<InvitationRepository>({ cancelPending: async () => 0 }, "InvitationRepo"))
     .register(TOKENS.DiscoverRepo, fake<DiscoverRepository>(discover, "DiscoverRepo"));
 }
 

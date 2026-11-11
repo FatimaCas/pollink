@@ -4,6 +4,7 @@ import { useInject } from "@/src/core/di/DIProvider";
 import { TOKENS } from "@/src/core/di/tokens";
 import { messageOf } from "@/src/core/utils/formatters";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
+import { InvitationRepository } from "@/src/features/invitations/domain/repositories/InvitationRepository";
 import { MembersRepository } from "@/src/features/members/domain/repositories/MembersRepository";
 import { isPending, JoinRequest } from "../../domain/entities/JoinRequest";
 import { JoinRequestRepository } from "../../domain/repositories/JoinRequestRepository";
@@ -11,10 +12,11 @@ import { JoinRequestRepository } from "../../domain/repositories/JoinRequestRepo
 // Una solicitud y su decisión: la ficha del aplicante y la pantalla de
 // resultado la leen por id. Aceptar cruza dos features, así que el view model
 // orquesta (un repositorio nunca llama a otro): comprueba que se puede, agrega
-// al miembro, marca la solicitud y limpia lo demás que la persona tenía abierto.
+// al miembro, marca la solicitud y cancela lo demás que la persona tenía abierto.
 export function useApplicantViewModel(requestId: string) {
   const requests = useInject<JoinRequestRepository>(TOKENS.JoinRequestRepo);
   const members = useInject<MembersRepository>(TOKENS.MembersRepo);
+  const invitations = useInject<InvitationRepository>(TOKENS.InvitationRepo);
   const session = useSession();
 
   const [request, setRequest] = useState<JoinRequest | null>(null);
@@ -63,9 +65,14 @@ export function useApplicantViewModel(requestId: string) {
         const decided = await requests.decide({ requestId: request.id, accepted, reviewerId: me.userId });
         setRequest(decided);
         if (accepted) {
-          // Ya es miembro: lo demás que tuviera abierto hacia el proyecto sobra.
-          // Si falla no importa: la solicitud ya está resuelta.
-          await requests.cancelPending({ projectId: request.projectId, userId: request.userId, cancelledBy: me.userId }).catch(() => 0);
+          // Ya es miembro: lo demás que tuviera abierto hacia el proyecto sobra
+          // (otras solicitudes y las invitaciones pendientes). Si falla no
+          // importa: la solicitud ya está resuelta.
+          const { projectId, userId } = request;
+          await Promise.all([
+            requests.cancelPending({ projectId, userId, cancelledBy: me.userId }).catch(() => 0),
+            invitations.cancelPending({ projectId, userId }).catch(() => 0),
+          ]);
         }
         return true;
       } catch (e) {
@@ -75,7 +82,7 @@ export function useApplicantViewModel(requestId: string) {
         setBusy(false);
       }
     },
-    [request, session, requests, members],
+    [request, session, requests, members, invitations],
   );
 
   return { request, name, loading, error, busy, reload, decide };
