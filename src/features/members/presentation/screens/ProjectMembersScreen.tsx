@@ -1,5 +1,5 @@
-import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useRef } from "react";
 import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 
@@ -19,6 +19,16 @@ export function ProjectMembersTab({ projectId }: { projectId: string }) {
   const theme = useTheme();
   const navigation = useNavigation();
   const vm = useProjectMembersViewModel(projectId);
+  // Al volver de un perfil (donde se puede quitar a alguien) la lista pudo
+  // cambiar: se relee (la primera vez ya la cargó el view model).
+  const firstFocus = useRef(true);
+  const { reload } = vm;
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) firstFocus.current = false;
+      else reload();
+    }, [reload]),
+  );
   const follow = useFollowToggle(vm.members.map((m) => m.userId));
 
   const confirm = (title: string, message: string, confirmLabel: string, run: () => Promise<string | null>, after?: () => void) =>
