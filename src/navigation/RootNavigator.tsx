@@ -1,7 +1,10 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
+import { Image } from "expo-image";
 import React from "react";
+import { StyleSheet } from "react-native";
+import { useTheme } from "react-native-paper";
 
 import LoginScreen from "../features/auth/presentation/screens/LoginScreen";
 import RegisterScreen from "../features/auth/presentation/screens/RegisterScreen";
@@ -33,42 +36,85 @@ const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
-function icon(name: IconName, focusedName: IconName) {
-  function TabIcon({ color, size, focused }: { color: string; size: number; focused: boolean }) {
-    return <MaterialCommunityIcons name={focused ? focusedName : name} color={color} size={size} />;
+type TabIconProps = { color: string; size: number; focused: boolean };
+function icon(name: IconName) {
+  function TabIcon({ color }: TabIconProps) {
+    return <MaterialCommunityIcons name={name} color={color} size={ICON_SIZE} />;
   }
   return TabIcon;
+}
+
+// La abeja del Figma es la mascota: el mismo SVG de un solo color, teñido.
+function BeeIcon({ color }: TabIconProps) {
+  return <Image source={require("../../assets/images/pollink-logo.svg")} style={styles.bee} contentFit="contain" tintColor={color} />;
+}
+
+// El «+» no es una pestaña: abre Crear proyecto encima de la barra.
+function NoScreen() {
+  return null;
 }
 
 // Las pestañas, para que las pruebas las toquen por clave.
 export const HomeTabKeys = {
   discover: "home.tab.discover",
+  create: "home.tab.create",
   projects: "home.tab.projects",
   profile: "home.tab.profile",
 };
 
-// La carcasa con la barra inferior: Descubrir · Proyectos · Perfil.
+// La carcasa con la barra inferior del Figma (`1:178`): Descubrir · Crear ·
+// Proyectos · Perfil (abeja · + · lista · persona), solo íconos; el activo en amarillo. La lupa (Explorar)
+// llega con su pantalla.
 function Tabs() {
+  const theme = useTheme();
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.onSurface,
+        tabBarStyle: { backgroundColor: theme.colors.surface },
+      }}
+    >
       <Tab.Screen
         name="Discover"
         component={DiscoverScreen}
-        options={{ title: "Descubrir", tabBarButtonTestID: HomeTabKeys.discover, tabBarIcon: icon("compass-outline", "compass") }}
+        options={{ title: "Descubrir", tabBarAccessibilityLabel: "Descubrir", tabBarButtonTestID: HomeTabKeys.discover, tabBarIcon: BeeIcon }}
+      />
+      <Tab.Screen
+        name="Create"
+        component={NoScreen}
+        options={{ tabBarAccessibilityLabel: "Crear proyecto", tabBarButtonTestID: HomeTabKeys.create, tabBarIcon: icon("plus-circle") }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.getParent<StackNavigationProp<RootStackParamList>>()?.navigate("CreateProject");
+          },
+        })}
       />
       <Tab.Screen
         name="Projects"
         component={ProjectsScreen}
-        options={{ title: "Proyectos", tabBarButtonTestID: HomeTabKeys.projects, tabBarIcon: icon("folder-outline", "folder") }}
+        options={{
+          title: "Proyectos",
+          tabBarAccessibilityLabel: "Proyectos",
+          tabBarButtonTestID: HomeTabKeys.projects,
+          tabBarIcon: icon("format-list-bulleted-square"),
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: "Perfil", tabBarButtonTestID: HomeTabKeys.profile, tabBarIcon: icon("account-outline", "account") }}
+        options={{ title: "Perfil", tabBarAccessibilityLabel: "Perfil", tabBarButtonTestID: HomeTabKeys.profile, tabBarIcon: icon("account") }}
       />
     </Tab.Navigator>
   );
 }
+
+const ICON_SIZE = 30;
+const styles = StyleSheet.create({
+  bee: { width: 38, height: 30 },
+});
 
 export default function RootNavigator() {
   return (
