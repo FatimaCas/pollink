@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import LoginScreen from "../features/auth/presentation/screens/LoginScreen";
 import RegisterScreen from "../features/auth/presentation/screens/RegisterScreen";
@@ -67,13 +68,17 @@ export const HomeTabKeys = {
 // llega con su pantalla.
 function Tabs() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarShowLabel: false,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurface,
-        tabBarStyle: { backgroundColor: theme.colors.surface },
+        // Los íconos del Figma miden ~40 dp: la caja y la barra de la librería
+        // (31×28 y 49 dp) se quedan cortas.
+        tabBarIconStyle: styles.iconBox,
+        tabBarStyle: { backgroundColor: theme.colors.surface, height: BAR_HEIGHT + insets.bottom },
       }}
     >
       <Tab.Screen
@@ -111,9 +116,11 @@ function Tabs() {
   );
 }
 
-const ICON_SIZE = 30;
+const ICON_SIZE = 40;
+const BAR_HEIGHT = 64;
 const styles = StyleSheet.create({
-  bee: { width: 38, height: 30 },
+  iconBox: { width: 48, height: 40 },
+  bee: { width: 46, height: 37 },
 });
 
 export default function RootNavigator() {
