@@ -1,5 +1,6 @@
 import { guardRoble, parseDate, Row, textOrNull, toNumber, toStringList } from "@/src/core/roble/guard";
 import { Clock, systemClock } from "@/src/core/utils/clock";
+import { normalizeLabel } from "@/src/core/utils/normalizeLabel";
 import { DiscoverFailure } from "../../domain/DiscoverFailure";
 import { DiscoverProject, ProjectStatus } from "../../domain/entities/DiscoverProject";
 import { FilterOption, FilterOptions } from "../../domain/entities/ProjectFilter";
@@ -23,11 +24,14 @@ export class DiscoverRepositoryImpl implements DiscoverRepository {
         offset,
       }),
     );
-    return {
-      projects: rows.map(toProject).filter((p) => p.id !== ""),
-      // `total` viaja en cada fila (COUNT(*) OVER ()); sin filas, no hay nada.
-      total: rows.length > 0 ? toNumber(rows[0].total) : 0,
-    };
+    return toPage(rows);
+  }
+
+  async searchPage({ text, career, limit, offset }: Parameters<DiscoverRepository["searchPage"]>[0]): Promise<FeedPage> {
+    const rows = await this.guard(() =>
+      this.source.querySearch({ text: normalizeLabel(text), career: career ?? "", limit, offset }),
+    );
+    return toPage(rows);
   }
 
   async filterOptions({ career, onlyOpen }: Parameters<DiscoverRepository["filterOptions"]>[0]): Promise<FilterOptions> {
@@ -90,6 +94,14 @@ export class DiscoverRepositoryImpl implements DiscoverRepository {
   private guard<T>(action: () => Promise<T>) {
     return guardRoble(action, (message) => new DiscoverFailure(message));
   }
+}
+
+function toPage(rows: Row[]): FeedPage {
+  return {
+    projects: rows.map(toProject).filter((p) => p.id !== ""),
+    // `total` viaja en cada fila (COUNT(*) OVER ()); sin filas, no hay nada.
+    total: rows.length > 0 ? toNumber(rows[0].total) : 0,
+  };
 }
 
 function toProject(row: Row): DiscoverProject {

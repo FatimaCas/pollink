@@ -31,4 +31,6 @@ export const QUERIES = {
   filteredProjects: "proyectos_filtrados",
   // $1 carrera elegida, $2 solo abiertos. Opciones de la hoja de filtros.
   filterOptions: "opciones_filtros_proyectos",
+  // $1 texto normalizado, $2 carrera, $3 tamaño de página, $4 desplazamiento. Explorar.
+  searchProjects: "buscar_proyectos",
 } as const;

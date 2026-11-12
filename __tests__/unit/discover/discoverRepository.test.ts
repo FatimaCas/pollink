@@ -1,4 +1,7 @@
+import { DummyData } from "@/src/core/data/dummyData";
+import { TABLES } from "@/src/core/roble/tables";
 import { DiscoverDataSource } from "@/src/features/discover/data/datasources/DiscoverDataSource";
+import { DiscoverInMemoryDataSource } from "@/src/features/discover/data/datasources/DiscoverInMemoryDataSource";
 import { DiscoverRepositoryImpl } from "@/src/features/discover/data/repositories/DiscoverRepositoryImpl";
 import { DiscoverFailure } from "@/src/features/discover/domain/DiscoverFailure";
 import { NO_FILTER } from "@/src/features/discover/domain/entities/ProjectFilter";
@@ -33,6 +36,35 @@ describe("feedPage", () => {
       throw new RobleApiHttpException(403, "no");
     };
     await expect(repo({ queryFeed }).feedPage({ filter: NO_FILTER, limit: 1, offset: 0 })).rejects.toBeInstanceOf(DiscoverFailure);
+  });
+});
+
+describe("searchPage", () => {
+  test("normaliza el texto, manda '' sin carrera y convierte la página", async () => {
+    const querySearch = jest.fn().mockResolvedValue([row()]);
+    const page = await repo({ querySearch }).searchPage({ text: "  Fresas CON Crema ", career: null, limit: 10, offset: 0 });
+    expect(querySearch).toHaveBeenCalledWith({ text: "fresas con crema", career: "", limit: 10, offset: 0 });
+    expect(page.total).toBe(7);
+    expect(page.projects[0]).toMatchObject({ id: "p1", title: "Fresitas" });
+  });
+
+  test("en memoria busca en título y descripción, sin tildes, y filtra por carrera", async () => {
+    const data = new DummyData({ latencyMs: 0 });
+    const p = (id: string, title: string, description: string, jobs: string[], createdAt: string) => ({
+      _id: id, _owner: "u1", title, description, jobs: JSON.stringify(jobs), skills: "[]", status: "open", progress: 0, createdAt,
+    });
+    data.table(TABLES.project).push(
+      p("a", "Café de origen", "Tostión artesanal", ["Gastronomía"], "2026-10-01"),
+      p("b", "EcoRutas", "Reciclaje con café del campus", ["Ing. Ambiental"], "2026-10-02"),
+      p("c", "Huerta", "Cultivos", ["Biología"], "2026-10-03"),
+    );
+    const memory = new DiscoverRepositoryImpl(new DiscoverInMemoryDataSource(data), clock);
+    const ids = async (text: string, career: string | null = null) =>
+      (await memory.searchPage({ text, career, limit: 10, offset: 0 })).projects.map((x) => x.id);
+    expect(await ids("CAFE")).toEqual(["b", "a"]);
+    expect(await ids("cafe", "gastronomia")).toEqual(["a"]);
+    expect(await ids("", "biologia")).toEqual(["c"]);
+    expect(await ids("nada")).toEqual([]);
   });
 });
 

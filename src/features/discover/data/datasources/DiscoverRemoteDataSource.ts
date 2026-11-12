@@ -18,6 +18,11 @@ export class DiscoverRemoteDataSource implements DiscoverDataSource {
     return result.rows;
   }
 
+  async querySearch({ text, career, limit, offset }: Parameters<DiscoverDataSource["querySearch"]>[0]) {
+    const result = await this.client.db.executeQueryByName(QUERIES.searchProjects, [text, career, limit, offset]);
+    return result.rows;
+  }
+
   async queryFilterOptions({ career, onlyOpen }: Parameters<DiscoverDataSource["queryFilterOptions"]>[0]) {
     const result = await this.client.db.executeQueryByName(QUERIES.filterOptions, [career, onlyOpen ? "true" : "false"]);
     return result.rows;

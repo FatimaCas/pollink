@@ -8,6 +8,7 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 // Pestañas de la barra inferior.
 export type TabParamList = {
   Discover: undefined; // A · discover
+  Explore: undefined; // A · discover (búsqueda)
   Create: undefined; // el «+»: no es pantalla, abre CreateProject
   Projects: undefined; // C · projects
   Profile: undefined; // B · profile

@@ -5,6 +5,8 @@ import { Row } from "@/src/core/roble/guard";
 export interface DiscoverDataSource {
   // `proyectos_filtrados`: claves normalizadas o '' para «todas».
   queryFeed(params: { career: string; skill: string; onlyOpen: boolean; limit: number; offset: number }): Promise<Row[]>;
+  // `buscar_proyectos`: texto y carrera normalizados, o '' para «sin condición».
+  querySearch(params: { text: string; career: string; limit: number; offset: number }): Promise<Row[]>;
   // `opciones_filtros_proyectos`.
   queryFilterOptions(params: { career: string; onlyOpen: boolean }): Promise<Row[]>;
   readProject(projectId: string): Promise<Row | null>;

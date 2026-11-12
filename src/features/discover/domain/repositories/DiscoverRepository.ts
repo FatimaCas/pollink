@@ -12,6 +12,11 @@ export interface DiscoverRepository {
   // Una página del feed, más recientes primero, ya filtrada en el servidor.
   feedPage(params: { filter: ProjectFilter; limit: number; offset: number }): Promise<FeedPage>;
 
+  // Una página de Explorar: proyectos cuyo título o descripción contienen
+  // `text` (sin distinguir mayúsculas ni tildes), de la carrera `career` (clave
+  // normalizada) si viene. Más recientes primero.
+  searchPage(params: { text: string; career: string | null; limit: number; offset: number }): Promise<FeedPage>;
+
   // Las opciones de los selectores de la hoja de filtros. Las carreras no
   // dependen de la habilidad elegida; las habilidades sí de la carrera.
   filterOptions(params: { career: string | null; onlyOpen: boolean }): Promise<FilterOptions>;
