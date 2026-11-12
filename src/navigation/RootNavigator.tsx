@@ -11,6 +11,7 @@ import LoginScreen from "../features/auth/presentation/screens/LoginScreen";
 import RegisterScreen from "../features/auth/presentation/screens/RegisterScreen";
 import ApplicationSentScreen from "../features/discover/presentation/screens/ApplicationSentScreen";
 import DiscoverScreen from "../features/discover/presentation/screens/DiscoverScreen";
+import ExploreScreen from "../features/discover/presentation/screens/ExploreScreen";
 import InvitationsScreen from "../features/invitations/presentation/screens/InvitationsScreen";
 import ProjectWorkspaceScreen from "../features/projects/presentation/screens/ProjectWorkspaceScreen";
 import CollaborationHistoryScreen from "../features/profile/presentation/screens/CollaborationHistoryScreen";
@@ -58,14 +59,15 @@ function NoScreen() {
 // Las pestañas, para que las pruebas las toquen por clave.
 export const HomeTabKeys = {
   discover: "home.tab.discover",
+  explore: "home.tab.explore",
   create: "home.tab.create",
   projects: "home.tab.projects",
   profile: "home.tab.profile",
 };
 
-// La carcasa con la barra inferior del Figma (`1:178`): Descubrir · Crear ·
-// Proyectos · Perfil (abeja · + · lista · persona), solo íconos; el activo en amarillo. La lupa (Explorar)
-// llega con su pantalla.
+// La carcasa con la barra inferior del Figma (`1:178`): Descubrir · Explorar ·
+// Crear · Proyectos · Perfil (abeja · lupa · + · lista · persona), solo íconos;
+// el activo en amarillo.
 function Tabs() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -85,6 +87,18 @@ function Tabs() {
         name="Discover"
         component={DiscoverScreen}
         options={{ title: "Descubrir", tabBarAccessibilityLabel: "Descubrir", tabBarButtonTestID: HomeTabKeys.discover, tabBarIcon: BeeIcon }}
+      />
+      <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        // Sin encabezado: el Figma (`5:14`) trae el título grande dentro de la pantalla.
+        options={{
+          title: "Explorar",
+          headerShown: false,
+          tabBarAccessibilityLabel: "Explorar",
+          tabBarButtonTestID: HomeTabKeys.explore,
+          tabBarIcon: icon("magnify"),
+        }}
       />
       <Tab.Screen
         name="Create"

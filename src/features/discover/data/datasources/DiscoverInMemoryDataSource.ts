@@ -21,6 +21,17 @@ export class DiscoverInMemoryDataSource implements DiscoverDataSource {
       .map((p) => ({ ...p, member_count: this.memberCount(p._id), total: matching.length }));
   }
 
+  async querySearch({ text, career, limit, offset }: Parameters<DiscoverDataSource["querySearch"]>[0]) {
+    await this.data.delay();
+    const matching = this.projects()
+      .filter((p) => !text || normalizeLabel(`${p.title ?? ""} ${p.description ?? ""}`).includes(text))
+      .filter((p) => !career || toStringList(p.jobs).some((j) => normalizeLabel(j) === career))
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    return matching
+      .slice(offset, offset + limit)
+      .map((p) => ({ ...p, member_count: this.memberCount(p._id), total: matching.length }));
+  }
+
   async queryFilterOptions({ career, onlyOpen }: Parameters<DiscoverDataSource["queryFilterOptions"]>[0]) {
     await this.data.delay();
     const base = this.projects().filter((p) => !onlyOpen || p.status === "open");
