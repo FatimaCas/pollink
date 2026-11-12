@@ -7,6 +7,7 @@ import { EmptyState } from "@/src/core/components/EmptyState";
 import { useFollowersCount } from "@/src/features/follows/presentation/hooks/useFollowersCount";
 import { useFollowToggle } from "@/src/features/follows/presentation/hooks/useFollowToggle";
 import { useSession } from "@/src/features/auth/presentation/context/SessionContext";
+import { RemoveMemberAction } from "@/src/features/members/presentation/components/RemoveMemberAction";
 import { RootStackParamList } from "@/src/navigation/types";
 import { TrustPill } from "@/src/features/trust/presentation/components/TrustPill";
 import { spacing } from "@/src/theme/tokens";
@@ -86,6 +87,7 @@ export default function PersonProfileScreen() {
         <Button mode="outlined" icon="history" onPress={() => navigation.navigate("CollaborationHistory", { userId })} testID={PersonProfileScreen.historyKey}>
           Ver historial de colaboración
         </Button>
+        {params.projectId && !isMe ? <RemoveMemberAction projectId={params.projectId} userId={userId} /> : null}
       </ProfileView>
     </ScrollView>
   );
