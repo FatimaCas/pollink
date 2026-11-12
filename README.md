@@ -75,6 +75,7 @@ Los datos se pierden al cerrar la app.
 |---|---|
 | `npm start` | Servidor de desarrollo (Expo Go) |
 | `npm run android` / `ios` / `web` | La app en esa plataforma |
+| `npm run build:web` | Exporta la web a `dist/` (ver `docs/prueba-web.md`) |
 | `npm run start:local` | La app con datos en memoria, sin Roble |
 | `npm run typecheck` | TypeScript sin emitir |
 | `npm run lint` | ESLint de Expo |
